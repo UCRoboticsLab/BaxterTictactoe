@@ -1,0 +1,15 @@
+(cl:defpackage baxter_collaboration_msgs-srv
+  (:use )
+  (:export
+   "DOACTION"
+   "<DOACTION-REQUEST>"
+   "DOACTION-REQUEST"
+   "<DOACTION-RESPONSE>"
+   "DOACTION-RESPONSE"
+   "ASKFEEDBACK"
+   "<ASKFEEDBACK-REQUEST>"
+   "ASKFEEDBACK-REQUEST"
+   "<ASKFEEDBACK-RESPONSE>"
+   "ASKFEEDBACK-RESPONSE"
+  ))
+

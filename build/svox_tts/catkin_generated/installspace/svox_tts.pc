@@ -1,0 +1,8 @@
+prefix=/home/baxterdev/scazLab2_ws/install
+
+Name: svox_tts
+Description: Description of svox_tts
+Version: 0.0.1
+Cflags: -I/home/baxterdev/scazLab2_ws/install/include
+Libs: -L/home/baxterdev/scazLab2_ws/install/lib 
+Requires: 

@@ -1,0 +1,6 @@
+set(ros_speech2text_SETUP_PY_VERSION "2.0.0")
+set(ros_speech2text_SETUP_PY_SCRIPTS "")
+set(ros_speech2text_SETUP_PY_PACKAGES "s2t")
+set(ros_speech2text_SETUP_PY_PACKAGE_DIRS "s2t")
+set(ros_speech2text_SETUP_PY_MODULES "")
+set(ros_speech2text_SETUP_PY_MODULE_DIRS "")

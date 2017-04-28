@@ -1,0 +1,68 @@
+#!/usr/bin/env python
+
+from remote_control import Server
+
+import sys
+import rospy
+from baxter_collaboration.srv import DoAction
+
+limb = 'left'
+
+if len(sys.argv) > 1:
+    limb = sys.argv[1]
+
+if   limb ==  'left':
+    PORT    = 5000
+    SERVICE = '/action_provider/service_left'
+elif limb == 'right':
+    PORT    = 6000
+    SERVICE = '/action_provider/service_right'
+
+OBJECT_IDS = {
+    'left_leg': 17,
+    'right_leg': 26,
+    'central_frame': 24,
+    'top': 21,
+    }
+
+
+def remote_message_to_action(msg):
+    # TODO The addition of null is because sometimes we get
+    #      e.g. ['get', 'left_leg', ''] from msg.split(' ')
+    action, obj = msg.split(' ')
+
+    obj_id = OBJECT_IDS[obj]
+    return (action, obj_id)
+
+
+class RemoteControlNode:
+
+    name = 'remote_control_'+limb
+
+    def __init__(self, port=PORT):
+        rospy.init_node(self.name, disable_signals=True)
+        self.rc_port = port
+
+    def run(self):
+        rospy.wait_for_service(SERVICE)
+        self.service = rospy.ServiceProxy(SERVICE, DoAction)
+        with Server(port=self.rc_port, callback=self._remote_msg_cb) as rc:
+	    rospy.loginfo("Started remote control server for %s arm.", limb)
+            rc.run()
+
+    def _remote_msg_cb(self, message):
+	rospy.loginfo("Received message: %s" % message)
+        try:
+            result = self.service(*remote_message_to_action(message))
+            return result.success
+        except Exception, e:
+            rospy.logerr("Unable to call service: %s" % e)
+	    return False
+
+
+if __name__ == "__main__":
+    try:
+        node = RemoteControlNode()
+        node.run()
+    finally:
+        rospy.signal_shutdown('') 

@@ -1,0 +1,43 @@
+{
+  "towers": [
+    {
+      "name": "Wood Tower",
+      "x0": 0,
+      "blocks": [
+        {
+          "label":"1",
+          "color":"burlywood"
+        },
+        {
+          "label":"2",
+          "color":"burlywood"
+        }]
+    },
+    {
+      "name": "White Tower",
+      "x0": 1,
+      "blocks": [
+        {
+          "label":"3",
+          "color":"#FFFFF0"
+        },
+        {
+          "label":"4",
+          "color":"#FFFFF0"
+        }]
+    },
+    {
+      "name": "Blue Tower",
+      "x0": 2,
+      "blocks": [
+        {
+          "label":"5",
+          "color":"dodgerblue"
+        },
+        {
+          "label":"6",
+          "color":"dodgerblue"
+        }]
+    }
+  ]
+}

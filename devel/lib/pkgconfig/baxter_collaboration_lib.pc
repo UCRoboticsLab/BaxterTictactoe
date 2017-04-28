@@ -1,0 +1,8 @@
+prefix=/home/baxterdev/scazLab2_ws/devel
+
+Name: baxter_collaboration_lib
+Description: Description of baxter_collaboration_lib
+Version: 1.0.0
+Cflags: -I/home/baxterdev/scazLab2_ws/src/baxter_collaboration/baxter_collaboration_lib/include
+Libs: -L/home/baxterdev/scazLab2_ws/devel/lib -lrobot_utils -lrobot_interface -lrobot_perception
+Requires: trac_ik_lib aruco_ros aruco

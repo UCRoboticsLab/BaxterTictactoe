@@ -1,0 +1,8 @@
+prefix=/home/baxterdev/scazLab2_ws/devel
+
+Name: baxter_tictactoe
+Description: Description of baxter_tictactoe
+Version: 0.8.0
+Cflags: -I/home/baxterdev/scazLab2_ws/devel/include -I/home/baxterdev/scazLab2_ws/src/baxter_tictactoe/lib/include
+Libs: -L/home/baxterdev/scazLab2_ws/devel/lib -lbaxter_tictactoe
+Requires: message_runtime

@@ -1,0 +1,10 @@
+uint8 INIT=0
+uint8 CALIB=1
+uint8 READY=2
+uint8 MATCH_STARTED=3
+uint8 GAME_STARTED=4
+uint8 GAME_RUNNING=5
+uint8 GAME_FINISHED=6
+uint8 MATCH_FINISHED=7
+
+uint8 state

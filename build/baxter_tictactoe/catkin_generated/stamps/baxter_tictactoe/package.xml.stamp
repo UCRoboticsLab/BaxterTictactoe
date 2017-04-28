@@ -1,0 +1,74 @@
+<package format="2">
+  <name>baxter_tictactoe</name>
+  <version>0.8.0</version>
+  <description>
+    # How to run this demo : a step by step tutorial
+
+      ## Initialization
+
+      Obvious stuff:
+
+       * make sure the Baxter is on
+       * make sure the computer is on
+       * make sure the Baxter and the computer are connected together
+       * make sure the computer has some working speakers
+       * make sure the board and tokens are placed on a table in front of Baxter
+
+      ## Calibration
+
+      In order to calibrate the hard coded positions for the pile of objects and the board, just record the end-effector position of the left arm when positioned either on the pile of tiles, or the four corners of the board. To to so, the following command may be useful:
+
+      ```
+      rostopic echo -n 1 /robot/limb/right/endpoint_state | grep -A 3 position
+      ```
+
+      Then, use this information to populate the corresponding parameters in `tictactoe.launch` : `"ttt_controller/tile_pile_position` and `ttt_controller/board_corner_poss`.
+
+      ## Run the demo
+
+       * Make sure the board is empty
+       * Open a new terminal
+       * `cd` to `~/ros_ws`
+       * `source devel/setup.bash`
+       * `./baxter.sh` (this has to be done with any terminal that will interface with the Baxter)
+       * `rosrun baxter_tools tuck_arms.py -u`
+       * `roslaunch baxter_tictactoe tictactoe.launch`
+       * Exit program
+
+      ## Shut down the robot
+
+       * Open a terminal:
+       * `cd` to `~/ros_ws`
+       * `source devel/setup.bash`
+       * `./baxter.sh` (this has to be done with any terminal that will interface with the Baxter)
+       * `rosrun baxter_tools tuck_arms.py -t`
+
+  </description>
+  <author>Álvaro Castro González [acgonzal@ing.uc3m.es]</author>
+  <maintainer email="alessandro.roncone@yale.edu">Alessandro Roncone</maintainer>
+  <maintainer email="olivier.mangin@yale.edu">Olivier Mangin</maintainer>
+  <maintainer email="johnamadeo.daniswara@yale.edu">John Amadeo Daniswara</maintainer>
+  <license>GNU GPL v2</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>message_generation</build_depend>
+
+  <depend>baxter_collaboration_lib</depend>
+  <depend>baxter_collaboration_msgs</depend>
+  <depend>std_msgs</depend>
+  <depend>rosconsole</depend>
+  <depend>baxter_core_msgs</depend>
+  <depend>sound_play</depend>
+  <depend>sensor_msgs</depend>
+  <depend>cv_bridge</depend>
+  <depend>image_transport</depend>
+  <depend>libqt4-dev</depend>
+
+  <exec_depend>usb_cam</exec_depend>
+  <exec_depend>message_runtime</exec_depend>
+
+  <!-- <export>
+    <cpp cflags="-I${prefix}/src -I${prefix}/msg_gen/cpp/include" lflags="-L${prefix}/lib -Wl,-rpath,${prefix}/lib"/>
+  </export> -->
+</package>

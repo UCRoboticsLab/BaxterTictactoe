@@ -1,8 +1,0 @@
-prefix=/home/baxterdev/scazLab2_ws/install
-
-Name: trac_ik_lib
-Description: Description of trac_ik_lib
-Version: 1.4.4
-Cflags: -I/home/baxterdev/scazLab2_ws/install/include -I/usr/include -I/usr/include/eigen3
-Libs: -L/home/baxterdev/scazLab2_ws/install/lib -ltrac_ik -l:/usr/lib/x86_64-linux-gnu/libboost_date_time.so
-Requires: kdl_parser roscpp urdf

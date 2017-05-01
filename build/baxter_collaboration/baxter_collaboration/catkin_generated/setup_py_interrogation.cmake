@@ -1,6 +1,0 @@
-set(baxter_collaboration_SETUP_PY_VERSION "1.0.0")
-set(baxter_collaboration_SETUP_PY_SCRIPTS "")
-set(baxter_collaboration_SETUP_PY_PACKAGES "baxter_collaboration")
-set(baxter_collaboration_SETUP_PY_PACKAGE_DIRS "baxter_collaboration")
-set(baxter_collaboration_SETUP_PY_MODULES "")
-set(baxter_collaboration_SETUP_PY_MODULE_DIRS "")

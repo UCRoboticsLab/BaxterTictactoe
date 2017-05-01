@@ -1,8 +1,0 @@
-# CMake generated Testfile for 
-# Source directory: /home/baxterdev/scazLab2_ws/src/baxter_collaboration/baxter_collaboration_lib
-# Build directory: /home/baxterdev/scazLab2_ws/build/baxter_collaboration/baxter_collaboration_lib
-# 
-# This file includes the relevant testing commands required for 
-# testing this directory and lists subdirectories to be tested as well.
-ADD_TEST(_ctest_baxter_collaboration_lib_gtest_test_util "/home/baxterdev/scazLab2_ws/build/catkin_generated/env_cached.sh" "/usr/bin/python" "/opt/ros/indigo/share/catkin/cmake/test/run_tests.py" "/home/baxterdev/scazLab2_ws/build/test_results/baxter_collaboration_lib/gtest-test_util.xml" "--return-code" "/home/baxterdev/scazLab2_ws/devel/lib/baxter_collaboration_lib/test_util --gtest_output=xml:/home/baxterdev/scazLab2_ws/build/test_results/baxter_collaboration_lib/gtest-test_util.xml")
-ADD_TEST(_ctest_baxter_collaboration_lib_rostest_test_test_robot_interface.launch "/home/baxterdev/scazLab2_ws/build/catkin_generated/env_cached.sh" "/usr/bin/python" "/opt/ros/indigo/share/catkin/cmake/test/run_tests.py" "/home/baxterdev/scazLab2_ws/build/test_results/baxter_collaboration_lib/rostest-test_test_robot_interface.xml" "--return-code" "/opt/ros/indigo/share/rostest/cmake/../../../bin/rostest --pkgdir=/home/baxterdev/scazLab2_ws/src/baxter_collaboration/baxter_collaboration_lib --package=baxter_collaboration_lib --results-filename test_test_robot_interface.xml --results-base-dir \"/home/baxterdev/scazLab2_ws/build/test_results\" /home/baxterdev/scazLab2_ws/src/baxter_collaboration/baxter_collaboration_lib/test/test_robot_interface.launch ")

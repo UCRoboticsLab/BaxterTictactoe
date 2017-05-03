@@ -29,6 +29,7 @@ tictactoeBrain::tictactoeBrain(std::string _name, std::string _strategy, bool le
     tttBrain_pub   = _nh.advertise<TTTBrainState>("/baxter_tictactoe/ttt_brain_state", 1);
 
     brainstate_timer = _nh.createTimer(ros::Duration(0.1), &tictactoeBrain::publishTTTBrainState, this, false);
+    invitation_timer = _nh.createTimer(ros::Duration(10), &tictactoeBrain::invitationCB, this, false);
 
     _nh.param<string>("voice", _voice_type, VOICE);
     ROS_INFO("Using voice %s", _voice_type.c_str());
@@ -74,7 +75,12 @@ void tictactoeBrain::InternalThreadEntry()
         }
         else if (getBrainState() == TTTBrainState::READY)
         {
-            if (_is_board_detected) { setBrainState(TTTBrainState::MATCH_STARTED); }
+            if (_is_board_detected)
+            {
+            	// Wait for the first move from opponent
+            	waitForOpponent2Start();
+            	setBrainState(TTTBrainState::MATCH_STARTED);
+            }
         }
         else if (getBrainState() == TTTBrainState::MATCH_STARTED)
         {
@@ -109,6 +115,15 @@ void tictactoeBrain::InternalThreadEntry()
         {
             saySentence("Game over. It was my pleasure to win over you. Thanks for being so human.", 10);
             ROS_INFO("Baxter Wins: %i\tHuman Wins: %i\tTies: %i", wins[0], wins[1], wins[2]);
+
+            // Do victory move here
+
+            // Clean board here
+
+            // Re-start the game after 5 seconds when a match is done
+            ros::Duration(5.0).sleep();
+            setBrainState(getBrainState() == TTTBrainState::READY);
+
             break;
         }
 
@@ -215,6 +230,22 @@ void tictactoeBrain::publishTTTBrainState(const ros::TimerEvent&)
     pthread_mutex_lock(&_mutex_brain);
     tttBrain_pub.publish(s);
     pthread_mutex_unlock(&_mutex_brain);
+}
+
+void tictactoeBrain::invitationCB(const ros::TimerEvent&)
+{
+	// Due to the limitation of the sound_play package, it's not possible
+	// to know is the sound card busy or not.
+	// Simply say something and block long enough to avoid overlapping.
+	if(getBrainState() == TTTBrainState::READY)
+	{
+		saySentence("Let's play tic tac toe.", 3);
+	}
+	else
+	{
+		// Stop timer
+		invitation_timer.stop();
+	}
 }
 
 int tictactoeBrain::getBrainState()
@@ -419,6 +450,38 @@ void tictactoeBrain::waitForOpponentTurn(const size_t& n_robot_tokens)
     }
 }
 
+void tictactoeBrain::waitForOpponent2Start()
+{
+	ROS_INFO("Waiting for the first move from opponent to start the game.");
+	int cnt = 0;
+
+	// start invitation timer.
+	invitation_timer.start();
+	 // We wait until the first of opponent's tokens detected on board
+	while(ros::ok())
+	{
+		Board new_board = getCurrBoard();
+
+		if (internal_board.isOneTokenAdded(new_board, getOpponentColor()))
+		{
+			++cnt;
+		}
+		else
+		{
+			cnt = 0;
+		}
+
+		if (cnt == 100)
+		{
+			internal_board = new_board;
+			n_human_tokens = internal_board.getNumTokens(getOpponentColor());
+			return;
+		} // 100 means 1 second
+
+		r.sleep();
+	}
+}
+
 void tictactoeBrain::saySentence(std::string sentence, double t)
 {
     ROS_INFO("saySentence: %s", sentence.c_str());
@@ -454,4 +517,5 @@ tictactoeBrain::~tictactoeBrain()
     pthread_mutex_destroy(&_mutex_brain);
     pthread_mutex_destroy(&mutex_curr_board);
     brainstate_timer.stop();
+    invitation_timer.stop();
 }

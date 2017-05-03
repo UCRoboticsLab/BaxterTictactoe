@@ -11,6 +11,7 @@
 
 #include <pthread.h>
 
+
 namespace baxter_tictactoe
 {
 
@@ -46,6 +47,7 @@ private:
     /* STATE OF THE TTT DEMO */
     baxter_tictactoe::TTTBrainState    s; // state of the system
     ros::Timer          brainstate_timer; // timer to publish the state of the system at a specific rate
+    ros::Timer 			invitation_timer; // timer to say hello to invite player
 
     ros::Publisher  tttBrain_pub;   // publisher to publish state of the system
     pthread_mutex_t _mutex_brain;   // mutex to protect the state of the system
@@ -74,11 +76,18 @@ private:
     void publishTTTBrainState(const ros::TimerEvent&);
 
     /**
+     * ROS timer to inviting user to play
+     **/
+    void invitationCB(const ros::TimerEvent&);
+
+
+    /**
      * ROS callback to handle the message published when the state of a cell has changed.
      *
      * \param msg the message with the new the state of each of the cells
      **/
     void boardStateCb(const baxter_tictactoe::MsgBoard &msg);
+
 
     /**
      * It determines randomly the next empty cell to place a token.
@@ -162,6 +171,14 @@ public:
      * @param number of opponent's token at the beginning
      **/
     void waitForOpponentTurn(const size_t& n_robot_tokens);
+
+    /**
+     * This function blocks until the opponent make the
+     * first move to start the game.
+     * It detects the red token on the board to start game.
+     * Otherwise keep inviting user to play.
+     **/
+    void waitForOpponent2Start();
 
     /**
      * This function synthesizes sentence and waits t seconds.

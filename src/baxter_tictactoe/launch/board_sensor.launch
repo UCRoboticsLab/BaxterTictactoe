@@ -34,12 +34,13 @@
     <node name="baxterDisplay" pkg="baxter_tictactoe" type="baxterDisplay" respawn="false" output="screen">
         <remap from="baxter_display" to="/robot/xdisplay"/>
         <remap from="board_state"    to="/baxter_tictactoe/board_state"/>
+        <remap from="game_display"    to="/baxter_tictactoe/game_display"/>
     </node>
 
-    <!-- <node name="image_view" pkg="image_view" type="image_view" respawn="false" output="screen">
-        <remap from="image" to="/robot/xdisplay"/>
+    <node name="game_view" pkg="image_view" type="image_view" respawn="false" output="screen">
+        <remap from="image" to="/baxter_tictactoe/game_display"/>
         <param name="autosize" value="true" />
-    </node> -->
+    </node>
 
     <node name="camera_view" pkg="image_view" type="image_view" respawn="false" output="screen">
         <remap from="image" to="/baxter_tictactoe/board_state_img"/>

@@ -19,6 +19,7 @@ private:
     ros::NodeHandle nh_;
     image_transport::ImageTransport it_;
     image_transport::Publisher image_pub_;
+    image_transport::Publisher image_screen_pub_;
 
     ros::Subscriber board_sub;
 
@@ -106,9 +107,18 @@ private:
     void newBoardCb(const MsgBoard& msg)
     {
         cv::Mat img_board = drawBoard(msg);
-        publishImage(img_board);
+        publish2Screen(img_board);
 
         return;
+    }
+
+    void publish2Screen(cv::Mat _img)
+    {
+    	cv_bridge::CvImage out_msg;
+    	out_msg.encoding = sensor_msgs::image_encodings::BGR8;
+    	out_msg.image    = _img;
+
+    	image_screen_pub_.publish(out_msg.toImageMsg());
     }
 
     void publishImage(cv::Mat _img)
@@ -151,6 +161,7 @@ public:
     {
         image_pub_ = it_.advertise("baxter_display", 3, true);
         board_sub  = nh_.subscribe("board_state", 3, &BaxterDisplay::newBoardCb, this);
+        image_screen_pub_ = it_.advertise("game_display", 3, true);
 
         nh_.param<std::string>("baxter_tictactoe/yale_logo_file", yale_logo_file, "");
 

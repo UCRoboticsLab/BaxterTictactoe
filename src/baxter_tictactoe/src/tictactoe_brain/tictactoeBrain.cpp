@@ -91,7 +91,8 @@ void tictactoeBrain::InternalThreadEntry()
         }
         else if (getBrainState() == TTTBrainState::GAME_STARTED)
         {
-            if (getCurrBoard().isEmpty())
+            //if (getCurrBoard().isEmpty())
+	    if(getCurrBoard().getNumTokens(COL_RED))
             {
                 setBrainState(TTTBrainState::GAME_RUNNING);
                 wipe_out_board_message = true;
@@ -239,7 +240,7 @@ void tictactoeBrain::invitationCB(const ros::TimerEvent&)
 	// Simply say something and block long enough to avoid overlapping.
 	if(getBrainState() == TTTBrainState::READY)
 	{
-		saySentence("Let's play tic tac toe.", 3);
+		saySentence("Random", 3);
 	}
 	else
 	{

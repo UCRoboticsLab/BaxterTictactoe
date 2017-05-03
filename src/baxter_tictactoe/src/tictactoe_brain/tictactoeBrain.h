@@ -62,6 +62,9 @@ private:
     // Pointer to the function that chooses the next move
     int (tictactoeBrain::*_choose_next_move)();
 
+    // Animator publisher
+    ros::Publisher animator_pub;
+
     TTTController  leftArmCtrl;
     TTTController rightArmCtrl;
 
@@ -209,6 +212,11 @@ public:
      * @return the latest board published by boardstate
      */
     baxter_tictactoe::Board  getCurrBoard();
+
+    /**
+    * Animator publishing function
+    **/
+    void pubAnimation(std::string emotion);
 
     /* SETTERS */
     void setStrategy(std::string strategy);

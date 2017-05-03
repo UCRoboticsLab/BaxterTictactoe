@@ -1,5 +1,5 @@
 #include "tictactoeBrain.h"
-
+#include "std_msgs/String.h"
 #include <stdlib.h> // srand, rand
 
 using namespace std;
@@ -27,6 +27,7 @@ tictactoeBrain::tictactoeBrain(std::string _name, std::string _strategy, bool le
     boardState_sub = _nh.subscribe("/baxter_tictactoe/board_state", SUBSCRIBER_BUFFER,
                                     &tictactoeBrain::boardStateCb, this);
     tttBrain_pub   = _nh.advertise<TTTBrainState>("/baxter_tictactoe/ttt_brain_state", 1);
+    animator_pub   = _nh.advertise<std_msgs::String>("/emotion", 1);
 
     brainstate_timer = _nh.createTimer(ros::Duration(0.1), &tictactoeBrain::publishTTTBrainState, this, false);
     invitation_timer = _nh.createTimer(ros::Duration(10), &tictactoeBrain::invitationCB, this, false);
@@ -77,6 +78,7 @@ void tictactoeBrain::InternalThreadEntry()
         {
             if (_is_board_detected)
             {
+                pubAnimation("welcome");
             	// Wait for the first move from opponent
             	waitForOpponent2Start();
             	setBrainState(TTTBrainState::MATCH_STARTED);
@@ -91,6 +93,7 @@ void tictactoeBrain::InternalThreadEntry()
         }
         else if (getBrainState() == TTTBrainState::GAME_STARTED)
         {
+            pubAnimation("playing");
             //if (getCurrBoard().isEmpty())
 	    if(getCurrBoard().getNumTokens(COL_RED))
             {
@@ -120,9 +123,15 @@ void tictactoeBrain::InternalThreadEntry()
             // Do victory move here
 
             // Clean board here
+            // wait until the board is cleaned 
+	    while(true)
+	    {if (getCurrBoard().isEmpty()) break;}
 
+	    // Wait for the first move from opponent
+            waitForOpponent2Start();
+            setBrainState(TTTBrainState::MATCH_STARTED);
             // Re-start the game after 5 seconds when a match is done
-            ros::Duration(5.0).sleep();
+            ros::Duration(2.0).sleep();
             setBrainState(getBrainState() == TTTBrainState::READY);
 
             break;
@@ -184,11 +193,12 @@ void tictactoeBrain::playOneGame()
     {
         case WIN_ROBOT:
             ROS_INFO("ROBOT's VICTORY");
+            pubAnimation("dance"); 
             if (has_cheated)
             {
                 saySentence("You humans are so easy to beat!", 3);
             }
-            saySentence("I won", 1);
+            saySentence("I won", 1);		
             break;
         case WIN_OPP:
             ROS_INFO("OPPONENT's VICTORY");
@@ -511,6 +521,14 @@ void tictactoeBrain::setStrategy(std::string strategy)
     {
         ROS_ERROR("%s is not an available strategy", strategy.c_str());
     }
+}
+
+void tictactoeBrain::pubAnimation(std::string emotion)
+{
+    std_msgs::String msg; 
+    msg.data = emotion;
+    ROS_INFO("Change emtion to : %s", emotion.c_str());
+    animator_pub.publish(msg);
 }
 
 tictactoeBrain::~tictactoeBrain()

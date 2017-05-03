@@ -17,48 +17,58 @@ class Animation:
         self.current_idx = 0
         self.set_velocity(1/50.0)
         #self.current_target = None
-        self.current_emotion = "nonchalant"
-        self.old_emotion = "nonchalant"
+        self.current_emotion = "welcome"
+        self.old_emotion = "welcome"
         #attentive, confused
         self.direction = True
-        self.emotion_list = ["nonchalant","heard_an_order","upanddown"]
+        self.emotion_list = ["welcome","giggling","confused", "playing", "dance"]
         self.once = True
 
 
         #set current directory to nonchalant, read images from the directory and store in map
-        self.subdirectory = "nonchalant/"
+        self.subdirectory = "welcome/"
         self.complete_path = directory + self.subdirectory
         self.fnames = [fname for fname in glob.glob("%s/*" % self.complete_path)]
         self.fnames.sort()
         self.images = [cv2.imread(path) for path in self.fnames]
         self.image_map = dict()
-        self.image_map["nonchalant"] = list(self.images)
+        self.image_map["welcome"] = list(self.images)
 
 
 
         # read images from heard_and_understand the directory and store in map
-        temp_subdirectory = "heard_an_order/"
+        temp_subdirectory = "giggling/"
         temp_complete_path = directory + temp_subdirectory
         temp_fnames = [fname for fname in glob.glob("%s/*" % temp_complete_path)]
         temp_fnames.sort()
         temp_images = [cv2.imread(path) for path in temp_fnames]
-        self.image_map["heard_an_order"] = list(temp_images)
+        self.image_map["giggling"] = list(temp_images)
 
 
 
         # read images from heard_and_understand the directory and store in map
-        temp_subdirectory = "upanddown/"
+        temp_subdirectory = "confused/"
         temp_complete_path = directory + temp_subdirectory
         temp_fnames = [fname for fname in glob.glob("%s/*" % temp_complete_path)]
         temp_fnames.sort()
         temp_images = [cv2.imread(path) for path in temp_fnames]
-        self.image_map["upanddown"] = list(temp_images) 
+        self.image_map["confused"] = list(temp_images) 
 
+	# read images from heard_and_understand the directory and store in map
+        temp_subdirectory = "playing/"
+        temp_complete_path = directory + temp_subdirectory
+        temp_fnames = [fname for fname in glob.glob("%s/*" % temp_complete_path)]
+        temp_fnames.sort()
+        temp_images = [cv2.imread(path) for path in temp_fnames]
+        self.image_map["playing"] = list(temp_images) 
 
-
-
-
-
+        # read images from heard_and_understand the directory and store in map
+        temp_subdirectory = "dance/"
+        temp_complete_path = directory + temp_subdirectory
+        temp_fnames = [fname for fname in glob.glob("%s/*" % temp_complete_path)]
+        temp_fnames.sort()
+        temp_images = [cv2.imread(path) for path in temp_fnames]
+        self.image_map["dance"] = list(temp_images) 
 
         self.image_publisher = rospy.Publisher("/robot/xdisplay", Image,
                                                queue_size=10)
@@ -66,7 +76,7 @@ class Animation:
 
         #self.target_subscriber = rospy.Subscriber("/confusion/target/command", Int32, self.set_target)
 
-        self.emotion_subscriber = rospy.Subscriber("/emotion", String, self.set_emotion)he
+        self.emotion_subscriber = rospy.Subscriber("/emotion", String, self.set_emotion)
 
         self.value_publisher = rospy.Publisher("/confusion/value/state", Int32,
                                                queue_size=10)

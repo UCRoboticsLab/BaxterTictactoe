@@ -13,7 +13,7 @@ class FileRecorder(JointRecorder):
         super(FileRecorder, self).__init__(filename, 1)
         self.f = open(self._filename, 'w')
         # Create Navigator I/O
-        self._navigator_io = baxter_interface.Navigator("right")
+        self._navigator_io = baxter_interface.Navigator("left")
         self._poll_rate = rospy.Rate(50)
 
     def start(self):
@@ -54,7 +54,7 @@ class FileRecorder(JointRecorder):
 
         print("\nDone.")
 
-    def record(self):
+    def record(self, value):
         # get joint name list
         joints_left = self._limb_left.joint_names()
         joints_right = self._limb_right.joint_names()

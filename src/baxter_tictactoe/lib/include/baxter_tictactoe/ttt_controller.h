@@ -32,7 +32,13 @@ private:
     hsvColorRange  hsv_red;
     hsvColorRange hsv_blue;
 
-    geometry_msgs::Point _tiles_pile_pos;
+    //geometry_msgs::Point _tiles_pile_pos;
+    //UC changing to Array
+    geometry_msgs::Point _tiles_pile_pos0;
+    geometry_msgs::Point _tiles_pile_pos1;
+    geometry_msgs::Point _tiles_pile_pos2;
+    geometry_msgs::Point _tiles_pile_pos3;
+    geometry_msgs::Point _tiles_pile_pos4;
 
     std::vector<geometry_msgs::Point>       _offsets;   // Legacy, it does not work
 

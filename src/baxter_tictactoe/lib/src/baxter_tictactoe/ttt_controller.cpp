@@ -10,6 +10,9 @@ using namespace cv;
 /**************************************************************************/
 /*                            TTTController                               */
 /**************************************************************************/
+/*UC changes, add counter to make robot pick up from different areas TODO reset counter at end of game*/
+int counter;
+geometry_msgs::Point coords [5];
 
 TTTController::TTTController(string name, string limb, bool legacy_code, bool no_robot, bool use_forces):
                              ArmCtrl(name, limb, no_robot, use_forces, false, false),
@@ -58,14 +61,32 @@ bool TTTController::tilesPilePosFromParam(XmlRpc::XmlRpcValue _params)
     {
         ROS_ASSERT(_params[j].getType()==XmlRpc::XmlRpcValue::TypeDouble);
     }
-
-    _tiles_pile_pos.x = _params[0];
-    _tiles_pile_pos.y = _params[1];
-    _tiles_pile_pos.z = _params[2];
-
-    ROS_INFO("[%s] Tile Pile Position: %g %g %g", getLimb().c_str(), _tiles_pile_pos.x,
-                                                  _tiles_pile_pos.y, _tiles_pile_pos.z);
-
+    //UC changed from original
+    _tiles_pile_pos0.x = _params[0];
+    _tiles_pile_pos0.y = _params[1];
+    _tiles_pile_pos0.z = _params[2];
+    _tiles_pile_pos1.x = _params[3];
+    _tiles_pile_pos1.y = _params[4];
+    _tiles_pile_pos1.z = _params[2];
+    _tiles_pile_pos2.x = _params[5];
+    _tiles_pile_pos2.y = _params[6];
+    _tiles_pile_pos2.z = _params[2];
+    _tiles_pile_pos3.x = _params[7];
+    _tiles_pile_pos3.y = _params[8];
+    _tiles_pile_pos3.z = _params[2];
+    _tiles_pile_pos4.x = _params[9];
+    _tiles_pile_pos4.y = _params[10];
+    _tiles_pile_pos4.z = _params[2];
+    coords[0] = _tiles_pile_pos0;
+    coords[1] = _tiles_pile_pos1;
+    coords[2] = _tiles_pile_pos2;
+    coords[3] = _tiles_pile_pos3;
+    coords[4] = _tiles_pile_pos4;
+    ROS_INFO("[%s] Tile Pile Position: %g %g %g", getLimb().c_str(), _tiles_pile_pos0.x,
+                                                  _tiles_pile_pos0.y, _tiles_pile_pos0.z);
+    
+    counter = 0;
+    ROS_INFO("counter is at %i",counter);
     return true;
 }
 
@@ -144,6 +165,9 @@ bool TTTController::boardPossFromParam(XmlRpc::XmlRpcValue _params)
 /**************************************************************************/
 bool TTTController::gripToken()
 {
+    /*UC altered*/
+	
+    ROS_INFO("Counter = %d", counter);
     if (_legacy_code == true)
     {
         createCVWindows();
@@ -180,9 +204,9 @@ bool TTTController::gripToken()
         }
         else
         {
-            px = _tiles_pile_pos.x;
-            py = _tiles_pile_pos.y;
-            pz = start_z - 0.15 * (ros::Time::now() - start_time).toSec();
+            px = coords[counter].x;
+            py = coords[counter].y;
+            pz = start_z - 0.10 * (ros::Time::now() - start_time).toSec();
         }
 
         goToPoseNoCheck(px,py,pz,VERTICAL_ORI_L);
@@ -203,6 +227,7 @@ bool TTTController::gripToken()
 
     if (_legacy_code == true) { destroyCVWindows(); }
     gripObject();
+    counter++;
     return true;
 }
 

@@ -703,7 +703,7 @@ bool RobotInterface::hasCollidedIR(string mode)
     if (getLimb() == "left")
     {
         if      (mode == "strict") thres = 0.050;
-        else if (mode ==  "loose") thres = 0.067;
+        else if (mode ==  "loose") thres = 0.126;
     }
     else if (getLimb() == "right")
     {

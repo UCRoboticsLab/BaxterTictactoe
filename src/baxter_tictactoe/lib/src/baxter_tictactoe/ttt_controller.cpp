@@ -14,6 +14,21 @@ using namespace cv;
 int counter;
 geometry_msgs::Point coords [5];
 
+/* Hard coded way points */ ////////////////Time-----joint state////////////
+const double wave_wp[][JOINT_NUM + 1] =    {{0,   1, 1, 1, 1, 1, 1, 1},
+											{1,   1, 1, 1, 1, 1, 1, 1},
+											{2,   1, 1, 1, 1, 1, 1, 1},
+											{3,   1, 1, 1, 1, 1, 1, 1}};
+
+const double victory_wp[][JOINT_NUM + 1] = {{0, 1, 1, 1, 1, 1, 1, 1},
+											{1, 1, 1, 1, 1, 1, 1, 1},
+											{2, 1, 1, 1, 1, 1, 1, 1},
+											{3, 1, 1, 1, 1, 1, 1, 1},
+											{4, 1, 1, 1, 1, 1, 1, 1},
+											{5, 1, 1, 1, 1, 1, 1, 1},
+											{6, 1, 1, 1, 1, 1, 1, 1}};
+
+
 TTTController::TTTController(string name, string limb, bool legacy_code, bool no_robot, bool use_forces):
                              ArmCtrl(name, limb, no_robot, use_forces, false, false),
                              r(100), _img_trp(_n), _legacy_code(legacy_code), _is_img_empty(true)
@@ -44,6 +59,7 @@ TTTController::TTTController(string name, string limb, bool legacy_code, bool no
         insertAction(ACTION_SCAN,    static_cast<f_action>(&TTTController::scanBoardImpl));
         insertAction(ACTION_PICKUP,  static_cast<f_action>(&TTTController::pickUpTokenImpl));
         insertAction(ACTION_PUTDOWN, static_cast<f_action>(&TTTController::putDownTokenImpl));
+        insertAction(ACTION_GESTURE, static_cast<f_action>(&TTTController::playbackJoints));
 
         _img_sub = _img_trp.subscribe("/cameras/"+getLimb()+"_hand_camera/image",
                                SUBSCRIBER_BUFFER, &TTTController::imageCb, this);
@@ -741,7 +757,106 @@ bool TTTController::startAction(string a, int o, bool block)
     	serviceCb(req,res);
     else
     	unblocking_serviceCB(req, res);
+
     return res.success;
+}
+
+void TTTController::joinAction()
+{
+	// wait until the internal thread set the internal state 'DONE'
+	ros::Rate r(THREAD_FREQ);
+	    while( ros::ok() && ( int(getState()) != START   &&
+	                          int(getState()) != ERROR   &&
+	                          int(getState()) != DONE      ))
+	    {
+	        if (ros::isShuttingDown())
+	        {
+	            setState(KILLED);
+	            return;
+	        }
+
+	        if (getState() == KILLED)
+	        {
+	        	// go home
+	            recoverFromError();
+	        }
+
+	        r.sleep();
+	    }
+
+	    if ( int(getState()) == START   ||
+	         int(getState()) == DONE      )
+	    {
+	    	ROS_INFO("[%s] Action succeed \n", getLimb().c_str());
+	    }
+
+	    if (getState() == ERROR)
+	    {
+	        ROS_INFO("[%s] Action failed. ERROR: %s \n", getLimb().c_str(), getSubState().c_str());
+	    }
+
+	    // Wait until internal thread exit
+	    joinInternalThread();
+	    return;
+}
+
+bool TTTController::playbackJoints()
+{
+	TTTController::gesture_t id = (TTTController::gesture_t)getObjectID();
+	ROS_INFO("Playing gesture %d..", id);
+	const double (* wps)[JOINT_NUM + 1];
+	int wp_size = 0;
+	double start_time;
+	vector<double> next_wp;
+
+	switch (id)
+	{
+		case wave:
+			wps = wave_wp;
+			wp_size = ARRAY_SIZE(wave_wp);
+			break;
+		case victory:
+			wps = victory_wp;
+			wp_size = ARRAY_SIZE(victory_wp);
+			break;
+		default:
+			ROS_WARN("unknown gesture id %d", id);
+			return false;
+	}
+    // set the start time at the beginning of each gesture
+	start_time = ros::Time::now().toSec();
+
+	for(int j = 0; j < wp_size; j++)
+	{
+		// make a vector, skip time in the 1st element
+		for(int i = 1; i < JOINT_NUM + 1; i++)
+		{
+			next_wp.push_back(wps[j][i]);
+		}
+
+		// Keep sending message to limb topic until position reached or timeout
+		while (RobotInterface::ok())
+		{
+			// Move the arm, return when goal gesture reached.
+			goToJointConfNoCheck(next_wp);
+			// go to the next way point if goal reached
+			if(isConfigurationReached(next_wp)) break;
+			// go to the next way point if time out
+			if(ros::Time::now().toSec() - start_time > wps[j][0])
+			{
+				ROS_WARN("Time out when playing way point %d in gesture %d", j, id);
+				break;
+			}
+
+			// send message at 100Hz
+			r.sleep();
+		}
+	}
+	// Going back to home position
+	goHome();
+
+	ROS_INFO("Finished gesture %d..", id);
+	return true;
 }
 
 bool TTTController::hoverAboveBoard()

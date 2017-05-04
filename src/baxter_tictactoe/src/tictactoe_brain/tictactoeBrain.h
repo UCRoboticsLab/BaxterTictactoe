@@ -218,6 +218,12 @@ public:
     **/
     void pubAnimation(std::string emotion);
 
+    /**
+     * Gesture way point playing back function
+     * Using both arms
+     **/
+    void playGesture(TTTController::gesture_t gid);
+
     /* SETTERS */
     void setStrategy(std::string strategy);
     void setBrainState(int state);

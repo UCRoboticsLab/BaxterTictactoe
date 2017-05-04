@@ -194,6 +194,7 @@ void tictactoeBrain::playOneGame()
         case WIN_ROBOT:
             ROS_INFO("ROBOT's VICTORY");
             pubAnimation("dance"); 
+            playGesture(TTTController::victory); // Play gesture victory
             if (has_cheated)
             {
                 saySentence("You humans are so easy to beat!", 3);
@@ -529,6 +530,15 @@ void tictactoeBrain::pubAnimation(std::string emotion)
     msg.data = emotion;
     ROS_INFO("Change emtion to : %s", emotion.c_str());
     animator_pub.publish(msg);
+}
+
+void tictactoeBrain::playGesture(TTTController::gesture_t gid)
+{
+	leftArmCtrl.startAction(ACTION_GESTURE, gid, false);
+	rightArmCtrl.startAction(ACTION_GESTURE, gid, false);
+
+	leftArmCtrl.joinAction();
+	rightArmCtrl.joinAction();
 }
 
 tictactoeBrain::~tictactoeBrain()

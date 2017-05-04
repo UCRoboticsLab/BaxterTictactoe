@@ -15,6 +15,7 @@ namespace baxter_tictactoe
 #define ACTION_SCAN         "scan"
 #define ACTION_PICKUP       "pick_up"
 #define ACTION_PUTDOWN      "put_down"
+#define ACTION_GESTURE		"play_gesture"
 
 #undef  ARM_SPEED
 #define ARM_SPEED  0.080    // [m/s]

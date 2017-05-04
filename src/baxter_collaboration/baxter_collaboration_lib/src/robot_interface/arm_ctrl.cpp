@@ -18,6 +18,10 @@ ArmCtrl::ArmCtrl(string _name, string _limb, bool _no_robot, bool _use_forces, b
     service = _n.advertiseService(topic, &ArmCtrl::serviceCb, this);
     ROS_INFO("[%s] Created service server with name  : %s", getLimb().c_str(), topic.c_str());
 
+    topic = "/"+getName()+"/service_"+_limb + "_unblocking";
+    unblocking_service = _n.advertiseService(topic, &ArmCtrl::unblocking_serviceCB, this);
+    ROS_INFO("[%s] Created service server with name  : %s", getLimb().c_str(), topic.c_str());
+
     topic = "/"+getName()+"/service_"+_limb+"_to_"+other_limb;
     service_other_limb = _n.advertiseService(topic, &ArmCtrl::serviceOtherLimbCb,this);
     ROS_INFO("[%s] Created service server with name  : %s", getLimb().c_str(), topic.c_str());
@@ -194,6 +198,87 @@ bool ArmCtrl::serviceCb(baxter_collaboration_msgs::DoAction::Request  &req,
     ROS_INFO("[%s] Service reply with success: %s\n", getLimb().c_str(),
                                             res.success?"true":"false");
     return true;
+}
+
+bool ArmCtrl::unblocking_serviceCB(baxter_collaboration_msgs::DoAction::Request  &req,
+		   baxter_collaboration_msgs::DoAction::Response &res)
+{
+	// Let's read the requested action and object to act upon
+	    setSubState("");
+	    object_ids.clear();
+	    setObjectID(-1);
+
+	    string action = req.action;
+	    std::vector<int> object_ids;
+	    std::string objs_str = "";
+
+	    for (size_t i = 0; i < req.objects.size(); ++i)
+	    {
+	        object_ids.push_back(req.objects[i]);
+	        objs_str += toString(req.objects[i]) + ", ";
+	    }
+	    objs_str = objs_str.substr(0, objs_str.size()-2); // Remove the last ", "
+
+	    ROS_INFO("[%s] Service request received. Action: %s Objects: %s", getLimb().c_str(),
+	                                                      action.c_str(), objs_str.c_str());
+
+	    // Print the action or object DB if requested by the user
+	    if      (action == LIST_ACTIONS)
+	    {
+	        printActionDB();
+	        res.success  = true;
+	        res.response = actionDBToString();
+	        return true;
+	    }
+	    else if (action == LIST_OBJECTS)
+	    {
+	        printObjectDB();
+	        res.success  = true;
+	        res.response = objectDBToString();
+	        return true;
+	    }
+
+	    res.success = false;
+
+	    setAction(action);
+
+	    if (action != ACTION_HOME && action != ACTION_RELEASE && action != ACTION_HOLD &&
+	        action != std::string(ACTION_HOLD) + "_leg" && action != std::string(ACTION_HOLD) + "_top")
+	    {
+	        setObjectIDs(areObjectsInDB(object_ids));
+
+	        if      (object_ids.size() == 0)
+	        {
+	            res.response = OBJ_NOT_IN_DB;
+	            ROS_ERROR("[%s] Requested object(s) are not in the database!",
+	                                                       getLimb().c_str());
+	            return true;
+	        }
+	        else if (object_ids.size() == 1)
+	        {
+	            setObjectID(object_ids[0]);
+	            // ROS_INFO("I will perform action %s on object with ID %i",
+	            //                           action.c_str(), getObjectID());
+	        }
+	        else if (object_ids.size() >  1)
+	        {
+	            setObjectID(chooseObjectID(object_ids));
+	        }
+	    }
+	    else if (action == ACTION_HOLD || action == std::string(ACTION_HOLD) + "_leg" ||
+	                                      action == std::string(ACTION_HOLD) + "_top"   )
+	    {
+	        setObjectIDs(object_ids);
+	    }
+
+	    startInternalThread();
+	    ROS_INFO("unblocking thread has been launched for action %s", action.c_str());
+
+	    // This is there for the current thread to avoid overlapping
+	    // with the internal thread that just started
+	    ros::Duration(0.5).sleep();
+
+	    return true;
 }
 
 bool ArmCtrl::notImplemented()

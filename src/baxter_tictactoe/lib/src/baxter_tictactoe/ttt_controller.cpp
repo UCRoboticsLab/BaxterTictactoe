@@ -729,14 +729,18 @@ void TTTController::setHomeConfiguration()
     }
 }
 
-bool TTTController::startAction(string a, int o)
+bool TTTController::startAction(string a, int o, bool block)
 {
     baxter_collaboration_msgs::DoAction::Request  req;
     baxter_collaboration_msgs::DoAction::Response res;
     req.action = a;
     req.objects.push_back(o);
 
-    serviceCb(req,res);
+    //[UC] edition
+    if(block)
+    	serviceCb(req,res);
+    else
+    	unblocking_serviceCB(req, res);
     return res.success;
 }
 

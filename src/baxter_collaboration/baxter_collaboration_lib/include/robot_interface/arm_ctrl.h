@@ -47,6 +47,10 @@ private:
     // Service to request actions to
     ros::ServiceServer  service;
 
+    // [UC edition] Service to request actions. This service is going to call an unblocking
+    // version of service callback.
+    ros::ServiceServer  unblocking_service;
+
     // Internal service used for multi-arm actions
     ros::ServiceServer service_other_limb;
 
@@ -357,6 +361,16 @@ public:
      */
     bool serviceCb(baxter_collaboration_msgs::DoAction::Request  &req,
                    baxter_collaboration_msgs::DoAction::Response &res);
+
+    /**
+	 * [UC edition]
+	 * Callback for the service that requests actions and return immediately
+	 * @param  req the action request
+	 * @param  res the action response (res.success either true or false)
+	 * @return     true always :)
+	 */
+	bool unblocking_serviceCB(baxter_collaboration_msgs::DoAction::Request  &req,
+				   baxter_collaboration_msgs::DoAction::Response &res);
 
     /**
      * Callback for the service that lets the two limbs interact

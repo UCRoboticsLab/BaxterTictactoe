@@ -236,7 +236,10 @@ public:
 
     bool goHome();
 
-    bool startAction(std::string a, int o = -1);
+    // [UC edition] Added unblocking callback option to this function
+    // To call the unblocking version, -1 need to be passed to parameter o
+    bool startAction(std::string a, int o = -1, bool block = true);
+
 };
 
 #endif

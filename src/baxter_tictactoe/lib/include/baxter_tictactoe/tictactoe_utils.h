@@ -21,7 +21,7 @@ namespace baxter_tictactoe
 
 #define NUMBER_OF_CELLS 9
 
-#define NUM_GAMES           3
+#define NUM_GAMES           1 // Changed by UC to 1 game
 #define CHEATING_GAME_A     2
 #define CHEATING_GAME_B     3
 

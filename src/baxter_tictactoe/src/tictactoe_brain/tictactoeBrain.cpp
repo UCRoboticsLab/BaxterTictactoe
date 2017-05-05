@@ -195,6 +195,7 @@ void tictactoeBrain::playOneGame()
         case WIN_ROBOT:
             ROS_INFO("ROBOT's VICTORY");
             pubAnimation("dance"); 
+            playGesture(TTTController::victory); // Play gesture victory
             if (has_cheated)
             {
                 saySentence("You humans are so easy to beat!", 3);
@@ -530,6 +531,37 @@ void tictactoeBrain::pubAnimation(std::string emotion)
     msg.data = emotion;
     ROS_INFO("Change emtion to : %s", emotion.c_str());
     animator_pub.publish(msg);
+}
+
+void tictactoeBrain::playGesture(TTTController::gesture_t gid)
+{
+	leftArmCtrl.startAction(ACTION_GESTURE, gid, false);
+	rightArmCtrl.startAction(ACTION_GESTURE, gid, false);
+
+	leftArmCtrl.joinAction();
+	rightArmCtrl.joinAction();
+}
+
+int tictactoeBrain::getNextRobotTile()
+{
+	// get current board in a thread safe way.
+	baxter_tictactoe::Board bd = getCurrBoard();
+
+	for(size_t i = 0; i < bd.getNumCells(); i++)
+	{
+		if (bd.getCellState(i) == COL_BLUE)
+		{
+			// Found blue tile in current board, check the internal board
+			if(internal_board.getCellState(i) != COL_BLUE)
+			{
+				// there is a conflict, print warnings
+				ROS_WARN("Internal cell %d contains no blue tile, doen't match the sensor image.", (int)i);
+			}
+			return (int)i;
+		}
+	}
+
+	return -1;
 }
 
 tictactoeBrain::~tictactoeBrain()

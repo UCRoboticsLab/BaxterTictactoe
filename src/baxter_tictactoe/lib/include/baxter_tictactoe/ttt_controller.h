@@ -18,6 +18,10 @@
 #define HOVER_BOARD_X   0.575  // [m]
 #define HOVER_BOARD_Y   0.100  // [m]
 #define HOVER_BOARD_Z   0.445  // [m]
+//[UC edition]
+#define JOINT_NUM 7  // Number of baxter joints
+#define ARRAY_SIZE(array) (sizeof((array))/sizeof((array[0])))
+
 
 class TTTController : public ArmCtrl
 {
@@ -39,6 +43,7 @@ private:
     geometry_msgs::Point _tiles_pile_pos2;
     geometry_msgs::Point _tiles_pile_pos3;
     geometry_msgs::Point _tiles_pile_pos4;
+
 
     std::vector<geometry_msgs::Point>       _offsets;   // Legacy, it does not work
 
@@ -222,6 +227,12 @@ private:
     bool putDownTokenImpl();
 
 public:
+    enum gesture_t
+    {
+    	wave = 0,
+    	victory
+    };
+
     TTTController(std::string name, std::string limb, bool legacy_code = false,
                   bool no_robot = false, bool use_forces = false);
     ~TTTController();
@@ -239,6 +250,13 @@ public:
     // [UC edition] Added unblocking callback option to this function
     // To call the unblocking version, -1 need to be passed to parameter o
     bool startAction(std::string a, int o = -1, bool block = true);
+
+    // [UC edition] Check the whether the underlying ROSThread is done. Wait and join.
+    // This is a blocking function, return when the thread is joined.
+    void joinAction();
+
+    // [UC edition] play back gestures
+    bool playbackJoints();
 
 };
 

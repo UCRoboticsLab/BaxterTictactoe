@@ -123,6 +123,7 @@ void tictactoeBrain::InternalThreadEntry()
             // Do victory move here
 
             // Clean board here
+
             // wait until the board is cleaned 
 	    while(true)
 	    {if (getCurrBoard().isEmpty()) break;}

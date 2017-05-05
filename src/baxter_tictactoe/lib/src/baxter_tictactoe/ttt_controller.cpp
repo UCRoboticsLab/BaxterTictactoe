@@ -56,14 +56,16 @@ TTTController::TTTController(string name, string limb, bool legacy_code, bool no
         ROS_ASSERT_MSG(_n.getParam("board_corner_poss",board_corner_poss), "No 3D position of the board!");
         boardPossFromParam(board_corner_poss);
 
-        insertAction(ACTION_SCAN,    static_cast<f_action>(&TTTController::scanBoardImpl));
-        insertAction(ACTION_PICKUP,  static_cast<f_action>(&TTTController::pickUpTokenImpl));
-        insertAction(ACTION_PUTDOWN, static_cast<f_action>(&TTTController::putDownTokenImpl));
-        insertAction(ACTION_GESTURE, static_cast<f_action>(&TTTController::playbackJoints));
-
         _img_sub = _img_trp.subscribe("/cameras/"+getLimb()+"_hand_camera/image",
                                SUBSCRIBER_BUFFER, &TTTController::imageCb, this);
     }
+
+    	insertAction(ACTION_SCAN,    static_cast<f_action>(&TTTController::scanBoardImpl));
+        insertAction(ACTION_PICKUP,  static_cast<f_action>(&TTTController::pickUpTokenImpl));
+        insertAction(ACTION_PUTDOWN, static_cast<f_action>(&TTTController::putDownTokenImpl));
+        insertAction(ACTION_GESTURE, static_cast<f_action>(&TTTController::playbackJoints));
+        ROS_INFO("---------------------------------------");
+        startAction(LIST_ACTIONS);
 
     setHomeConfiguration();
     if (!callAction(ACTION_HOME)) setState(ERROR);
@@ -607,7 +609,7 @@ void TTTController::setOffsets(int board_area, Contours contours, float dist, Ma
         std::sort(contours.begin() + (i - 3), contours.begin() + i, descendingX);
     }
 
-    _offsets.resize(9);
+    _offsets.resize(9);//gesture_t
     centroids.resize(9);
 
     for (int i = int(contours.size()) - 1; i >= 0; i--)

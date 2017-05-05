@@ -230,7 +230,7 @@ public:
     enum gesture_t
     {
     	wave = 0,
-    	victory
+    	victory = 1
     };
 
     TTTController(std::string name, std::string limb, bool legacy_code = false,

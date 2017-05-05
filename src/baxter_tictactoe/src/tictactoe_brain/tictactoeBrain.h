@@ -224,14 +224,6 @@ public:
      **/
     void playGesture(TTTController::gesture_t gid);
 
-    /**
-     * Return the cell id which contains the next robot tile to be cleaned from the chess board
-     * Return -1 if there is no tile to be cleaned.
-     * Print Warning message if the cell information in current board and internal board doesn't match.
-     **/
-    int getNextRobotTile();
-
-
     /* SETTERS */
     void setStrategy(std::string strategy);
     void setBrainState(int state);

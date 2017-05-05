@@ -542,28 +542,6 @@ void tictactoeBrain::playGesture(TTTController::gesture_t gid)
 	rightArmCtrl.joinAction();
 }
 
-int tictactoeBrain::getNextRobotTile()
-{
-	// get current board in a thread safe way.
-	baxter_tictactoe::Board bd = getCurrBoard();
-
-	for(size_t i = 0; i < bd.getNumCells(); i++)
-	{
-		if (bd.getCellState(i) == COL_BLUE)
-		{
-			// Found blue tile in current board, check the internal board
-			if(internal_board.getCellState(i) != COL_BLUE)
-			{
-				// there is a conflict, print warnings
-				ROS_WARN("Internal cell %d contains no blue tile, doen't match the sensor image.", (int)i);
-			}
-			return (int)i;
-		}
-	}
-
-	return -1;
-}
-
 tictactoeBrain::~tictactoeBrain()
 {
     pthread_mutex_destroy(&_mutex_brain);

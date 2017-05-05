@@ -94,6 +94,8 @@ void tictactoeBrain::InternalThreadEntry()
         else if (getBrainState() == TTTBrainState::GAME_STARTED)
         {
             pubAnimation("playing");
+            //[todo, remove this later]
+            playGesture(TTTController::victory);
             //if (getCurrBoard().isEmpty())
 	    if(getCurrBoard().getNumTokens(COL_RED))
             {

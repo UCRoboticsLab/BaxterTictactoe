@@ -95,7 +95,7 @@ void tictactoeBrain::InternalThreadEntry()
         {
             pubAnimation("playing");
             //[todo, remove this later]
-            playGesture(TTTController::victory);
+            //playGesture(TTTController::victory);
             //if (getCurrBoard().isEmpty())
 	    if(getCurrBoard().getNumTokens(COL_RED))
             {

@@ -180,7 +180,6 @@ void tictactoeBrain::playOneGame()
             n_robot_tokens = internal_board.getNumTokens(getRobotColor());
 
             if(internal_board.twoInARow(getRobotColor())){
-            	//todo giggling stuff
             	pubAnimation("giggling");
             	playGesture(TTTController::giggle);
             }
@@ -217,6 +216,10 @@ void tictactoeBrain::playOneGame()
             saySentence("That's a tie. I will win next time.", 3);
             winner = WIN_TIE;
     }
+
+    //todo, CLEAN BOARD HERE
+    // get the cell numbers of all blue pieces
+    //place the tiles back
 
     // Let's increment the winners' count
     wins[winner-1] = wins[winner-1] + 1;

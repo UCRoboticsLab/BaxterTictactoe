@@ -271,7 +271,11 @@ bool TTTController::gripToken()
 
     if (_legacy_code == true) { destroyCVWindows(); }
     gripObject();
-    counter++;
+    if(counter<4){
+    	counter++;
+    }else{
+    	counter = 0;
+    }
     return true;
 }
 

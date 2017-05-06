@@ -11,6 +11,7 @@ tictactoeBrain::tictactoeBrain(std::string _name, std::string _strategy, bool le
                                leftArmCtrl(_name, "left", legacy_code), rightArmCtrl(_name, "right", legacy_code),
                                n_robot_tokens(0), n_human_tokens(0)
 {
+	robot_turn = false;
     printf("\n");
     ROS_INFO("Legacy code %s enabled.", legacy_code?"is":"is not");
     setBrainState(TTTBrainState::INIT);
@@ -76,13 +77,20 @@ void tictactoeBrain::InternalThreadEntry()
         }
         else if (getBrainState() == TTTBrainState::READY)
         {
+        	// wait for the first boradstate message come in
             if (_is_board_detected)
             {
-                pubAnimation("welcome");
-            	// Wait for the first move from opponent
-            	waitForOpponent2Start();
-            	setBrainState(TTTBrainState::MATCH_STARTED);
+            	setBrainState(TTTBrainState::WAIT);
             }
+        }
+        else if (getBrainState() == TTTBrainState::WAIT)
+        {
+        	//todo, wave gesture here
+
+        	pubAnimation("welcome");
+        	// Wait for the first move from opponent
+        	waitForOpponent2Start();
+        	setBrainState(TTTBrainState::MATCH_STARTED);
         }
         else if (getBrainState() == TTTBrainState::MATCH_STARTED)
         {
@@ -120,31 +128,17 @@ void tictactoeBrain::InternalThreadEntry()
             saySentence("Game over. It was my pleasure to win over you. Thanks for being so human.", 10);
             ROS_INFO("Baxter Wins: %i\tHuman Wins: %i\tTies: %i", wins[0], wins[1], wins[2]);
 
-            // Do victory move here
+            ROS_INFO("Match finished...going to WAIT mode........");
+            setBrainState(TTTBrainState::WAIT);
+		}
 
-            // Clean board here
-
-            // wait until the board is cleaned 
-	    while(true)
-	    {if (getCurrBoard().isEmpty()) break;}
-
-	    // Wait for the first move from opponent
-            waitForOpponent2Start();
-            setBrainState(TTTBrainState::MATCH_STARTED);
-            // Re-start the game after 5 seconds when a match is done
-            ros::Duration(2.0).sleep();
-            setBrainState(getBrainState() == TTTBrainState::READY);
-
-            break;
-        }
-
+        //ROS_INFO("*********************Current brain state is %d *********************", s.state);
         r.sleep();
     }
 }
 
 void tictactoeBrain::playOneGame()
 {
-    bool robot_turn = true;
     int winner  = WIN_NONE;
 
     bool has_to_cheat=false;
@@ -163,7 +157,7 @@ void tictactoeBrain::playOneGame()
     saySentence("I start the game.",2);
 
     n_robot_tokens=0;
-    n_human_tokens=0;
+    n_human_tokens=internal_board.getNumTokens(getOpponentColor());
 
     while (winner == WIN_NONE && not internal_board.isFull() && not ros::isShuttingDown())
     {
@@ -193,7 +187,7 @@ void tictactoeBrain::playOneGame()
         winner = getWinner();
     }
 
-    setBrainState(TTTBrainState::GAME_FINISHED);
+
 
     switch(winner)
     {
@@ -217,9 +211,24 @@ void tictactoeBrain::playOneGame()
             winner = WIN_TIE;
     }
 
+
+    //todo, make victory move here
     //todo, CLEAN BOARD HERE
     // get the cell numbers of all blue pieces
     //place the tiles back
+
+    // wait until the board is cleaned
+	int counter = 0;
+	ros::Rate rate(10);
+	while(ros::ok() && counter < 20)
+	{
+		if (getCurrBoard().isEmpty()) counter++;
+		else counter = 0;
+	}
+	ROS_INFO("Board cleaned, let's start another game.");
+
+	setBrainState(TTTBrainState::GAME_FINISHED);
+	robot_turn = false; //[UC edition] let the player start first
 
     // Let's increment the winners' count
     wins[winner-1] = wins[winner-1] + 1;
@@ -252,6 +261,7 @@ void tictactoeBrain::publishTTTBrainState(const ros::TimerEvent&)
     pthread_mutex_lock(&_mutex_brain);
     tttBrain_pub.publish(s);
     pthread_mutex_unlock(&_mutex_brain);
+    //ROS_INFO("--------------------Current brain state %d --------------------", s.state);
 }
 
 void tictactoeBrain::invitationCB(const ros::TimerEvent&)
@@ -497,6 +507,7 @@ void tictactoeBrain::waitForOpponent2Start()
 		{
 			internal_board = new_board;
 			n_human_tokens = internal_board.getNumTokens(getOpponentColor());
+			robot_turn = true;
 			return;
 		} // 100 means 1 second
 

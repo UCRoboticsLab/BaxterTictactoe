@@ -7,17 +7,18 @@ import struct
 
 
 class TTTBrainState(genpy.Message):
-  _md5sum = "c7b998ac74eedae7c69c5dc6c1b01bee"
+  _md5sum = "7b6cbd204bcff335fca2f7c7c16e4b71"
   _type = "baxter_tictactoe/TTTBrainState"
   _has_header = False #flag to mark the presence of a Header object
   _full_text = """uint8 INIT=0
 uint8 CALIB=1
 uint8 READY=2
-uint8 MATCH_STARTED=3
-uint8 GAME_STARTED=4
-uint8 GAME_RUNNING=5
-uint8 GAME_FINISHED=6
-uint8 MATCH_FINISHED=7
+uint8 WAIT=3
+uint8 MATCH_STARTED=4
+uint8 GAME_STARTED=5
+uint8 GAME_RUNNING=6
+uint8 GAME_FINISHED=7
+uint8 MATCH_FINISHED=8
 
 uint8 state
 """
@@ -25,11 +26,12 @@ uint8 state
   INIT = 0
   CALIB = 1
   READY = 2
-  MATCH_STARTED = 3
-  GAME_STARTED = 4
-  GAME_RUNNING = 5
-  GAME_FINISHED = 6
-  MATCH_FINISHED = 7
+  WAIT = 3
+  MATCH_STARTED = 4
+  GAME_STARTED = 5
+  GAME_RUNNING = 6
+  GAME_FINISHED = 7
+  MATCH_FINISHED = 8
 
   __slots__ = ['state']
   _slot_types = ['uint8']

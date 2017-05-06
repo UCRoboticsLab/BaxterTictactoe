@@ -27,7 +27,7 @@
         BL: [0.4765, 0.2197, -0.0303]
     </rosparam>
 
-    <rosparam param="ttt_controller/num_games">3</rosparam>
+    <rosparam param="ttt_controller/num_games">1</rosparam>
     <rosparam param="ttt_controller/cheating_games">[2, 3]</rosparam>
     <!-- <param name="ttt_controller/voice"       type="str" value="voice_cmu_us_jmk_arctic_clunits" /> -->
     <param name="ttt_controller/voice"       type="str" value="voice_kal_diphone" />

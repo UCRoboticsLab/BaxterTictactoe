@@ -54,12 +54,16 @@ void BoardState::InternalThreadEntry()
 
         if (board_state == STATE_INIT)
         {
+        	//ROS_INFO("[%i] Initializing board..", board_state);
             ROS_DEBUG_THROTTLE(1,"[%i] Initializing..", board_state);
             if (brain_state ==        TTTBrainState::READY) { ++board_state; }
-            if (brain_state == TTTBrainState::GAME_STARTED) { ++board_state; ++board_state; }
+            if (brain_state == TTTBrainState::GAME_STARTED ||
+            	brain_state == TTTBrainState::WAIT)
+            { ++board_state; ++board_state; }
         }
         else if (board_state == STATE_CALIB && not ros::isShuttingDown())
         {
+        	//ROS_INFO("[%i] Calibrating board..", board_state);
             ROS_DEBUG_THROTTLE(1,"[%i] Calibrating board..", board_state);
             if (not _img_empty)
             {
@@ -234,7 +238,7 @@ void BoardState::InternalThreadEntry()
 
 void BoardState::brainStateCb(const baxter_tictactoe::TTTBrainState & msg)
 {
-    // ROS_INFO("[%i] brainStateCb %i", board_state, msg.state);
+    //ROS_INFO("[%i] brainStateCb %i", board_state, msg.state);
     brain_state = msg.state;
 
     if (msg.state == TTTBrainState::GAME_FINISHED)

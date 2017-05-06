@@ -40,11 +40,12 @@ struct TTTBrainState_
     enum { INIT = 0u };
      enum { CALIB = 1u };
      enum { READY = 2u };
-     enum { MATCH_STARTED = 3u };
-     enum { GAME_STARTED = 4u };
-     enum { GAME_RUNNING = 5u };
-     enum { GAME_FINISHED = 6u };
-     enum { MATCH_FINISHED = 7u };
+     enum { WAIT = 3u }; //[UC edition, added wait state. File was generated from msg files]
+     enum { MATCH_STARTED = 4u };
+     enum { GAME_STARTED = 5u };
+     enum { GAME_RUNNING = 6u };
+     enum { GAME_FINISHED = 7u };
+     enum { MATCH_FINISHED = 8u };
  
 
   typedef boost::shared_ptr< ::baxter_tictactoe::TTTBrainState_<ContainerAllocator> > Ptr;
@@ -58,6 +59,8 @@ typedef boost::shared_ptr< ::baxter_tictactoe::TTTBrainState > TTTBrainStatePtr;
 typedef boost::shared_ptr< ::baxter_tictactoe::TTTBrainState const> TTTBrainStateConstPtr;
 
 // constants requiring out of line definition
+
+   
 
    
 
@@ -137,12 +140,12 @@ struct MD5Sum< ::baxter_tictactoe::TTTBrainState_<ContainerAllocator> >
 {
   static const char* value()
   {
-    return "c7b998ac74eedae7c69c5dc6c1b01bee";
+    return "7b6cbd204bcff335fca2f7c7c16e4b71";
   }
 
   static const char* value(const ::baxter_tictactoe::TTTBrainState_<ContainerAllocator>&) { return value(); }
-  static const uint64_t static_value1 = 0xc7b998ac74eedae7ULL;
-  static const uint64_t static_value2 = 0xc69c5dc6c1b01beeULL;
+  static const uint64_t static_value1 = 0x7b6cbd204bcff335ULL;
+  static const uint64_t static_value2 = 0xfca2f7c7c16e4b71ULL;
 };
 
 template<class ContainerAllocator>
@@ -164,11 +167,12 @@ struct Definition< ::baxter_tictactoe::TTTBrainState_<ContainerAllocator> >
     return "uint8 INIT=0\n\
 uint8 CALIB=1\n\
 uint8 READY=2\n\
-uint8 MATCH_STARTED=3\n\
-uint8 GAME_STARTED=4\n\
-uint8 GAME_RUNNING=5\n\
-uint8 GAME_FINISHED=6\n\
-uint8 MATCH_FINISHED=7\n\
+uint8 WAIT=3\n\
+uint8 MATCH_STARTED=4\n\
+uint8 GAME_STARTED=5\n\
+uint8 GAME_RUNNING=6\n\
+uint8 GAME_FINISHED=7\n\
+uint8 MATCH_FINISHED=8\n\
 \n\
 uint8 state\n\
 ";

@@ -33,6 +33,8 @@ private:
     int    num_games;
     int    curr_game;
 
+    bool   robot_turn;
+
     std::vector<int> cheating_games; // vector that stores which of the games will be a cheating one.
     std::vector<int>           wins; // vector of three elements to count the wins (wins[0]->robot, wins[1]->opponent, wins[2]->ties)
 

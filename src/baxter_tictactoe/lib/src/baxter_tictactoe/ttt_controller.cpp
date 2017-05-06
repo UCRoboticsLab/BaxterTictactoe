@@ -848,6 +848,10 @@ bool TTTController::playbackJoints()
 			wps = victory_wp;
 			wp_size = ARRAY_SIZE(victory_wp);
 			break;
+		case giggle:
+			wps = giggle_wp;
+			wp_size = ARRAY_SIZE(giggle_wp);
+			break;
 		default:
 			ROS_WARN("unknown gesture id %d", id);
 			return false;

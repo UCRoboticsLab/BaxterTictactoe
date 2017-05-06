@@ -440,6 +440,39 @@ bool Board::threeInARow(const string& _col)
     return false;
 }
 
+bool Board::twoInARow(const string& _col)
+{
+    if (_col!=COL_BLUE && _col!=COL_RED) { return false; }
+
+    // Rows
+    //top row
+    if (getCellState(1)==_col && getCellState(2)==_col) { return true; }
+    if (getCellState(0)==_col && getCellState(1)==_col) { return true; }
+    //mid row
+    if (getCellState(4)==_col && getCellState(3)==_col) { return true; }
+    if (getCellState(4)==_col && getCellState(5)==_col) { return true; }
+    //bottom row
+    if (getCellState(6)==_col && getCellState(7)==_col) { return true; }
+    if (getCellState(7)==_col && getCellState(8)==_col) { return true; }
+    //Coloumns
+    //col1
+    if (getCellState(0)==_col && getCellState(3)==_col) { return true; }
+    if (getCellState(3)==_col && getCellState(6)==_col) { return true; }
+    //col2
+    if (getCellState(4)==_col && getCellState(1)==_col) { return true; }
+    if (getCellState(4)==_col && getCellState(7)==_col) { return true; }
+    //col3
+    if (getCellState(2)==_col && getCellState(5)==_col) { return true; }
+    if (getCellState(5)==_col && getCellState(8)==_col) { return true; }
+
+    // Diagonals
+    if (getCellState(4)==_col && getCellState(8)==_col) { return true; }
+    if (getCellState(2)==_col && getCellState(4)==_col) { return true; }
+    if (getCellState(0)==_col && getCellState(4)==_col) { return true; }
+    if (getCellState(4)==_col && getCellState(6)==_col) { return true; }
+    return false;
+}
+
 void Board::fromMsgBoard(const baxter_tictactoe::MsgBoard &msgb)
 {
     resetBoard();

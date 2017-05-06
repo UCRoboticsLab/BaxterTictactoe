@@ -94,8 +94,6 @@ void tictactoeBrain::InternalThreadEntry()
         else if (getBrainState() == TTTBrainState::GAME_STARTED)
         {
             pubAnimation("playing");
-            //[todo, remove this later]
-            //playGesture(TTTController::victory);
             //if (getCurrBoard().isEmpty())
 	    if(getCurrBoard().getNumTokens(COL_RED))
             {
@@ -180,6 +178,12 @@ void tictactoeBrain::playOneGame()
             leftArmCtrl.startAction(ACTION_PUTDOWN, cell_toMove);
             internal_board.setCellState(cell_toMove-1, getRobotColor());
             n_robot_tokens = internal_board.getNumTokens(getRobotColor());
+
+            if(internal_board.twoInARow(getRobotColor())){
+            	//todo giggling stuff
+            	pubAnimation("giggling");
+            	playGesture(TTTController::giggle);
+            }
         }
         else // Participant's turn
         {

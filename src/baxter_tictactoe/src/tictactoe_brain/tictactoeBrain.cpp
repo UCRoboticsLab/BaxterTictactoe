@@ -7,11 +7,10 @@ using namespace baxter_tictactoe;
 
 tictactoeBrain::tictactoeBrain(std::string _name, std::string _strategy, bool legacy_code) : _nh(_name),
                                spinner(4), r(100), _legacy_code(legacy_code), num_games(NUM_GAMES), curr_game(0),
-                               wins(3,0), curr_board(9), internal_board(9), _is_board_detected(false),
+                               robot_turn(false), highest_empty_pool(0), wins(3,0), curr_board(9), internal_board(9), _is_board_detected(false),
                                leftArmCtrl(_name, "left", legacy_code), rightArmCtrl(_name, "right", legacy_code),
                                n_robot_tokens(0), n_human_tokens(0)
 {
-	robot_turn = false;
     printf("\n");
     ROS_INFO("Legacy code %s enabled.", legacy_code?"is":"is not");
     setBrainState(TTTBrainState::INIT);
@@ -168,7 +167,8 @@ void tictactoeBrain::playOneGame()
             int cell_toMove = getNextMove();    // This should be from 1 to 9
             ROS_INFO("Moving to cell %i", cell_toMove);
 
-            leftArmCtrl.startAction(ACTION_PICKUP);
+            leftArmCtrl.startAction(ACTION_PICKUP, highest_empty_pool + 1 + internal_board.getNumCells());
+            highest_empty_pool++;
             leftArmCtrl.startAction(ACTION_PUTDOWN, cell_toMove);
             internal_board.setCellState(cell_toMove-1, getRobotColor());
             n_robot_tokens = internal_board.getNumTokens(getRobotColor());
@@ -211,20 +211,7 @@ void tictactoeBrain::playOneGame()
             winner = WIN_TIE;
     }
 
-
-    //todo, make victory move here
-    //todo, CLEAN BOARD HERE
-    // get the cell numbers of all blue pieces
-    //place the tiles back
-
-    // wait until the board is cleaned
-	int counter = 0;
-	ros::Rate rate(10);
-	while(ros::ok() && counter < 20)
-	{
-		if (getCurrBoard().isEmpty()) counter++;
-		else counter = 0;
-	}
+    cleanBoard();
 	ROS_INFO("Board cleaned, let's start another game.");
 
 	setBrainState(TTTBrainState::GAME_FINISHED);
@@ -308,6 +295,8 @@ void tictactoeBrain::setBrainState(int state)
 
 void tictactoeBrain::boardStateCb(const baxter_tictactoe::MsgBoard &msg)
 {
+	if(getBrainState() == TTTBrainState::GAME_FINISHED) return;
+
     ROS_DEBUG("New TTT board state received");
     pthread_mutex_lock(&mutex_curr_board);
     curr_board.fromMsgBoard(msg);
@@ -560,6 +549,56 @@ void tictactoeBrain::playGesture(TTTController::gesture_t gid)
 
 	leftArmCtrl.joinAction();
 	rightArmCtrl.joinAction();
+}
+
+int tictactoeBrain::getNextRobotTile(baxter_tictactoe::Board & board)
+{
+	for(uint i = 0; i < board.getNumCells(); i++ )
+	{
+		if(board.getCellState(i) == COL_BLUE)
+		{
+			// Found blue tile in current board, check internal board
+			if(internal_board.getCellState(i) != COL_BLUE)
+			{
+				// Conflict
+				ROS_WARN("internal cell %d contains no blue tile but it's detected by camera.", i+1);
+			}
+			// remove the tile from the board snapshot and return the id.
+			board.setCellState(i, COL_EMPTY);
+			return i+1;
+		}
+	}
+	return -1;
+}
+
+void tictactoeBrain::cleanBoard()
+{
+	int token_id;
+	size_t cellNum = internal_board.getNumCells();
+	// take a snapshot of the current board
+	baxter_tictactoe::Board catched_board = getCurrBoard();
+
+	// get the cell number of blue piece
+	while((token_id = getNextRobotTile(catched_board)) != -1 &&
+		   highest_empty_pool > 0)
+	{
+		//pick up the tile from cell
+		ROS_INFO("Cleaning board, pickup from cell %d", token_id);
+		leftArmCtrl.startAction(ACTION_PICKUP, token_id);
+		//place the tiles back
+		ROS_INFO("Cleaning board, drop tile to pool %d", highest_empty_pool);
+		leftArmCtrl.startAction(ACTION_PUTDOWN, highest_empty_pool + cellNum);
+		highest_empty_pool--;
+	}
+
+	// wait until the board is cleaned and keep cleaned for 2 seconds
+	int empty_timer = 0;
+	ros::Rate rate(10);
+	while(ros::ok() && empty_timer < 20)
+	{
+		if (getCurrBoard().isEmpty()) empty_timer++;
+		else empty_timer = 0;
+	}
 }
 
 tictactoeBrain::~tictactoeBrain()

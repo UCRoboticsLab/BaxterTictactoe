@@ -11,8 +11,7 @@ using namespace cv;
 /*                            TTTController                               */
 /**************************************************************************/
 /*UC changes, add counter to make robot pick up from different areas TODO reset counter at end of game*/
-int counter;
-geometry_msgs::Point coords [5];
+
 
 /* Hard coded way points */ ////////////////Time-----joint state////////////
 const double victory_wp[][JOINT_NUM * 2 + 1] =    {
@@ -126,11 +125,9 @@ bool TTTController::tilesPilePosFromParam(XmlRpc::XmlRpcValue _params)
     coords[2] = _tiles_pile_pos2;
     coords[3] = _tiles_pile_pos3;
     coords[4] = _tiles_pile_pos4;
-    ROS_INFO("[%s] Tile Pile Position: %g %g %g", getLimb().c_str(), _tiles_pile_pos0.x,
-                                                  _tiles_pile_pos0.y, _tiles_pile_pos0.z);
     
-    counter = 0;
-    ROS_INFO("counter is at %i",counter);
+
+
     return true;
 }
 
@@ -188,6 +185,19 @@ bool TTTController::boardPossFromParam(XmlRpc::XmlRpcValue _params)
 
     ROS_INFO("[%s] Computed board centers [TL TR BL BR]:", getLimb().c_str());
 
+    _board_centers_poss.push_back(coords[0]);
+    _board_centers_poss.push_back(coords[1]);
+    _board_centers_poss.push_back(coords[2]);
+    _board_centers_poss.push_back(coords[3]);
+    _board_centers_poss.push_back(coords[4]);
+    ROS_INFO("[%s] Tile Pile Position: %g %g %g", getLimb().c_str(), coords[0].x,
+        														    coords[0].y, coords[0].z);
+    ROS_INFO("[%s] Tile Pile Position vector: %g %g %g", getLimb().c_str(), _board_centers_poss[9].x,
+    											 _board_centers_poss[9].y, _board_centers_poss[9].z);
+
+
+
+
     for (size_t i = 0; i < 3; ++i)
     {
         std::string coords_str = "";
@@ -211,7 +221,6 @@ bool TTTController::gripToken()
 {
     /*UC altered*/
 	
-    ROS_INFO("Counter = %d", counter);
     if (_legacy_code == true)
     {
         createCVWindows();
@@ -248,8 +257,8 @@ bool TTTController::gripToken()
         }
         else
         {
-            px = coords[counter].x;
-            py = coords[counter].y;
+            px = getPos().x; // current pose
+            py = getPos().y; // current pose
             pz = start_z - 0.10 * (ros::Time::now() - start_time).toSec();
         }
 
@@ -271,11 +280,7 @@ bool TTTController::gripToken()
 
     if (_legacy_code == true) { destroyCVWindows(); }
     gripObject();
-    if(counter<4){
-    	counter++;
-    }else{
-    	counter = 0;
-    }
+
     return true;
 }
 
@@ -1009,9 +1014,17 @@ bool TTTController::pickUpTokenImpl()
         r.sleep();
     }
 
-    hoverAboveTokens(Z_LOW);
+    ROS_INFO("token pos: x = %f, y = %f", _board_centers_poss[getObjectID()-1].x,
+    									  _board_centers_poss[getObjectID()-1].y); // Debug
+    if(getObjectID() > 9) hoverAboveTokens(Z_LOW); // playing
+    else hoverAboveCenterOfBoard(); // cleaning
+
+    hoverAboveCell(); // hover above the cell or pool containing the next tile
     gripToken();
-    hoverAboveTokens(Z_LOW);
+    hoverAboveCell(); // lift tile up
+
+    if(getObjectID() > 9) hoverAboveTokens(Z_LOW); // playing
+    else hoverAboveCenterOfBoard(); // cleaning
 
     setTracIK(false);
 
@@ -1021,11 +1034,23 @@ bool TTTController::pickUpTokenImpl()
 bool TTTController::putDownTokenImpl()
 {
     ROS_DEBUG("Putting down token..");
-    if (!hoverAboveCenterOfBoard()) return false;
-    if (!hoverAboveCell()) return false;
+    if(getObjectID() < 9)
+    	{if (!hoverAboveCenterOfBoard())
+    	{
+    		ROS_WARN("Fail to hover over Centre of board.");
+    		return false;
+    	}
+    }
+    else {if (!hoverAboveTokens(Z_LOW)) return false;}
+    if (!hoverAboveCell())
+    {
+    	ROS_WARN("Fail to hover over cell %d", getObjectID());
+    	return false;
+    }
     ros::Duration(0.1).sleep();
     if (!releaseObject()) return false;
-    if (!hoverAboveCenterOfBoard()) return false;
+    if(getObjectID() < 9) {if (!hoverAboveCenterOfBoard()) return false;}
+    //else {if (!hoverAboveTokens(Z_LOW)) return false;}
     hoverAboveTokens(Z_LOW);
 
     return true;

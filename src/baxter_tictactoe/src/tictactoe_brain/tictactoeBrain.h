@@ -34,6 +34,8 @@ private:
     int    curr_game;
 
     bool   robot_turn;
+    int    highest_empty_pool; //The highest pool id in the rank. 0(no one empty) ~ 5(all empty)
+
 
     std::vector<int> cheating_games; // vector that stores which of the games will be a cheating one.
     std::vector<int>           wins; // vector of three elements to count the wins (wins[0]->robot, wins[1]->opponent, wins[2]->ties)
@@ -143,6 +145,12 @@ private:
      **/
     bool victoryMove(int &cell_id);
 
+    /**
+     * Clean
+     *
+     *
+     **/
+
 protected:
 
     void InternalThreadEntry();
@@ -225,6 +233,20 @@ public:
      * Using both arms
      **/
     void playGesture(TTTController::gesture_t gid);
+
+    /**
+     * Take a board snapshot as parameter.
+     * Return the cell id which contains the next robot tile to be removed
+     * Return -1 if no tile to remove
+     **/
+    int getNextRobotTile(baxter_tictactoe::Board & board);
+
+    /**
+     * Remove all robot tiles from the board
+     * Using a snapshot of the board before cleaning.
+     * Return when an empty board detected.
+     **/
+    void cleanBoard();
 
     /* SETTERS */
     void setStrategy(std::string strategy);

@@ -49,6 +49,7 @@ private:
 
     std::vector<geometry_msgs::Point> _board_centers_poss;
     std::vector<geometry_msgs::Point> _board_corners_poss;
+    geometry_msgs::Point coords [5]; // Pool coordinates
 
     cv::Mat  _curr_img;
     cv::Size _img_size;

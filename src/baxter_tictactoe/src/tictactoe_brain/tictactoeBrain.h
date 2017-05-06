@@ -9,6 +9,7 @@
 #include "baxter_tictactoe/ttt_controller.h"
 #include "baxter_tictactoe/tictactoe_utils.h"
 
+#include <baxter_collaboration_msgs/WOZ.h>
 #include <pthread.h>
 
 
@@ -36,6 +37,8 @@ private:
     bool   robot_turn;
     int    highest_empty_pool; //The highest pool id in the rank. 0(no one empty) ~ 5(all empty)
 
+    /* The Wizard Of Oz control states */
+    bool woz_dance, woz_wave, woz_giggle, woz_cheat;
 
     std::vector<int> cheating_games; // vector that stores which of the games will be a cheating one.
     std::vector<int>           wins; // vector of three elements to count the wins (wins[0]->robot, wins[1]->opponent, wins[2]->ties)
@@ -52,9 +55,14 @@ private:
     baxter_tictactoe::TTTBrainState    s; // state of the system
     ros::Timer          brainstate_timer; // timer to publish the state of the system at a specific rate
     ros::Timer 			invitation_timer; // timer to say hello to invite player
+    ros::Timer 			woz_timer; // timer to publish woz control states
 
     ros::Publisher  tttBrain_pub;   // publisher to publish state of the system
     pthread_mutex_t _mutex_brain;   // mutex to protect the state of the system
+
+    ros::Publisher woz_st_pub;  // publisher to publish woz state of the system
+    ros::Subscriber woz_cmd_sub; // subscriber to receive the command from WOZ client.
+    pthread_mutex_t _mutex_woz; // mutex to protect the state of WOZ
 
     /* MISC */
     std::string    _robot_color;  // Color of the tokens the robot    is playing with.
@@ -87,6 +95,11 @@ private:
      **/
     void invitationCB(const ros::TimerEvent&);
 
+    /**
+	 * WOZ control state publishing function
+	 */
+	void pubWozSt(const ros::TimerEvent&);
+
 
     /**
      * ROS callback to handle the message published when the state of a cell has changed.
@@ -95,6 +108,12 @@ private:
      **/
     void boardStateCb(const baxter_tictactoe::MsgBoard &msg);
 
+    /**
+     * ROS callback to handle the message published by WOZ client
+     *
+     * \param msg the message with the new the state of WOZ control
+     **/
+    void wozCmdCb(const baxter_collaboration_msgs::WOZ &msg);
 
     /**
      * It determines randomly the next empty cell to place a token.
@@ -224,9 +243,41 @@ public:
     baxter_tictactoe::Board  getCurrBoard();
 
     /**
+     * Thread safe method to retrieve the individual WOZ dance state
+     **/
+    bool getWozDance();
+
+    /**
+	 * Thread safe method to retrieve the individual WOZ wave state
+	 **/
+	bool getWozWave();
+
+    /**
+	 * Thread safe method to retrieve the individual WOZ giggle state
+	 **/
+	bool getWozGiggle();
+
+    /**
+	 * Thread safe method to retrieve the individual WOZ cheat state
+	 **/
+	bool getWozCheat();
+
+	/**
+	 * Thread safe method to set the individual WOZ cheat state
+	 **/
+	void setWozCheat(bool st);
+
+	/**
+	 * Thread safe method to set the individual WOZ wave state
+	 **/
+	void setWozWave(bool st);
+
+    /**
     * Animator publishing function
     **/
     void pubAnimation(std::string emotion);
+
+
 
     /**
      * Gesture way point playing back function

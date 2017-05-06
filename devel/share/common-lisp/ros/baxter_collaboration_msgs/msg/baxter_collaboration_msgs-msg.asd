@@ -8,6 +8,8 @@
   :components ((:file "_package")
     (:file "Object" :depends-on ("_package_Object"))
     (:file "_package_Object" :depends-on ("_package"))
+    (:file "WOZ" :depends-on ("_package_WOZ"))
+    (:file "_package_WOZ" :depends-on ("_package"))
     (:file "GoToPose" :depends-on ("_package_GoToPose"))
     (:file "_package_GoToPose" :depends-on ("_package"))
     (:file "ObjectsArray" :depends-on ("_package_ObjectsArray"))

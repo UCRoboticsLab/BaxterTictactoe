@@ -3,6 +3,8 @@
   (:export
    "<OBJECT>"
    "OBJECT"
+   "<WOZ>"
+   "WOZ"
    "<GOTOPOSE>"
    "GOTOPOSE"
    "<OBJECTSARRAY>"

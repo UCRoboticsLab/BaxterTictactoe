@@ -18,6 +18,7 @@ add_message_files(FILES
                   GoToPose.msg
                   Object.msg
                   ObjectsArray.msg
+		  WOZ.msg
 )
 
 ## Generate services in the 'srv' folder

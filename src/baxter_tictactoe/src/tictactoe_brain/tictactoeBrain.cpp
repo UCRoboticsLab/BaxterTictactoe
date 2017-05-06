@@ -7,9 +7,10 @@ using namespace baxter_tictactoe;
 
 tictactoeBrain::tictactoeBrain(std::string _name, std::string _strategy, bool legacy_code) : _nh(_name),
                                spinner(4), r(100), _legacy_code(legacy_code), num_games(NUM_GAMES), curr_game(0),
-                               robot_turn(false), highest_empty_pool(0), wins(3,0), curr_board(9), internal_board(9), _is_board_detected(false),
-                               leftArmCtrl(_name, "left", legacy_code), rightArmCtrl(_name, "right", legacy_code),
-                               n_robot_tokens(0), n_human_tokens(0)
+                               robot_turn(false), highest_empty_pool(0), woz_dance(false), woz_wave(false),
+                               woz_giggle(false), woz_cheat(false),wins(3,0), curr_board(9), internal_board(9),
+                               _is_board_detected(false),leftArmCtrl(_name, "left", legacy_code),
+                               rightArmCtrl(_name, "right", legacy_code), n_robot_tokens(0), n_human_tokens(0)
 {
     printf("\n");
     ROS_INFO("Legacy code %s enabled.", legacy_code?"is":"is not");
@@ -26,11 +27,15 @@ tictactoeBrain::tictactoeBrain(std::string _name, std::string _strategy, bool le
 
     boardState_sub = _nh.subscribe("/baxter_tictactoe/board_state", SUBSCRIBER_BUFFER,
                                     &tictactoeBrain::boardStateCb, this);
+    woz_cmd_sub = _nh.subscribe("woz_cmd", 1, &tictactoeBrain::wozCmdCb, this);
+
     tttBrain_pub   = _nh.advertise<TTTBrainState>("/baxter_tictactoe/ttt_brain_state", 1);
+    woz_st_pub = _nh.advertise<baxter_collaboration_msgs::WOZ>("woz_st", 1);
     animator_pub   = _nh.advertise<std_msgs::String>("/emotion", 1);
 
     brainstate_timer = _nh.createTimer(ros::Duration(0.1), &tictactoeBrain::publishTTTBrainState, this, false);
     invitation_timer = _nh.createTimer(ros::Duration(10), &tictactoeBrain::invitationCB, this, false);
+    woz_timer = _nh.createTimer(ros::Duration(0.1), &tictactoeBrain::pubWozSt, this, false);
 
     _nh.param<string>("voice", _voice_type, VOICE);
     ROS_INFO("Using voice %s", _voice_type.c_str());
@@ -84,9 +89,14 @@ void tictactoeBrain::InternalThreadEntry()
         }
         else if (getBrainState() == TTTBrainState::WAIT)
         {
-        	//todo, wave gesture here
+        	pubAnimation("welcome");  //todo: do we need welcome face on anyway?
+        	if(getWozWave())
+        	{
+        		playGesture(TTTController::wave);
+        		// Play wave once only.
+        		setWozWave(false);
+        	}
 
-        	pubAnimation("welcome");
         	// Wait for the first move from opponent
         	waitForOpponent2Start();
         	setBrainState(TTTBrainState::MATCH_STARTED);
@@ -174,8 +184,13 @@ void tictactoeBrain::playOneGame()
             n_robot_tokens = internal_board.getNumTokens(getRobotColor());
 
             if(internal_board.twoInARow(getRobotColor())){
-            	pubAnimation("giggling");
-            	playGesture(TTTController::giggle);
+            	// Please use the get function to access WOZ state for thread safty
+            	if(getWozGiggle())
+            	{
+            		// Play giggle only when woz_giggle is true
+            		pubAnimation("giggling");
+            		playGesture(TTTController::giggle);
+            	}
             }
         }
         else // Participant's turn
@@ -193,8 +208,12 @@ void tictactoeBrain::playOneGame()
     {
         case WIN_ROBOT:
             ROS_INFO("ROBOT's VICTORY");
-            pubAnimation("dance"); 
-            playGesture(TTTController::victory); // Play gesture victory
+            if(getWozDance())
+            {
+				pubAnimation("dance");
+				playGesture(TTTController::victory); // Play gesture victory
+            }
+
             if (has_cheated)
             {
                 saySentence("You humans are so easy to beat!", 3);
@@ -241,6 +260,56 @@ Board tictactoeBrain::getCurrBoard()
     pthread_mutex_unlock(&mutex_curr_board);
 
     return res;
+}
+
+bool tictactoeBrain::getWozDance()
+{
+	bool res;
+	pthread_mutex_lock(&_mutex_woz);
+	res = woz_dance;
+	pthread_mutex_unlock(&_mutex_woz);
+	return res;
+}
+
+bool tictactoeBrain::getWozWave()
+{
+	bool res;
+	pthread_mutex_lock(&_mutex_woz);
+	res = woz_wave;
+	pthread_mutex_unlock(&_mutex_woz);
+	return res;
+}
+
+bool tictactoeBrain::getWozGiggle()
+{
+	bool res;
+	pthread_mutex_lock(&_mutex_woz);
+	res = woz_giggle;
+	pthread_mutex_unlock(&_mutex_woz);
+	return res;
+}
+
+bool tictactoeBrain::getWozCheat()
+{
+	bool res;
+	pthread_mutex_lock(&_mutex_woz);
+	res = woz_cheat;
+	pthread_mutex_unlock(&_mutex_woz);
+	return res;
+}
+
+void tictactoeBrain::setWozCheat(bool st)
+{
+	pthread_mutex_lock(&_mutex_woz);
+	woz_cheat = st;
+	pthread_mutex_unlock(&_mutex_woz);
+}
+
+void tictactoeBrain::setWozWave(bool st)
+{
+	pthread_mutex_lock(&_mutex_woz);
+	woz_wave= st;
+	pthread_mutex_unlock(&_mutex_woz);
 }
 
 void tictactoeBrain::publishTTTBrainState(const ros::TimerEvent&)
@@ -302,6 +371,17 @@ void tictactoeBrain::boardStateCb(const baxter_tictactoe::MsgBoard &msg)
     curr_board.fromMsgBoard(msg);
     pthread_mutex_unlock(&mutex_curr_board);
     _is_board_detected = true;
+}
+
+void tictactoeBrain::wozCmdCb(const baxter_collaboration_msgs::WOZ &msg)
+{
+	ROS_INFO("New WOZ client command received. ");
+	pthread_mutex_lock(&_mutex_woz);
+	woz_dance = msg.dance ? true : false;
+	woz_wave = msg.wave ? true : false;
+	woz_giggle= msg.giggle ? true : false;
+	woz_cheat = msg.cheat ? true : false;
+	pthread_mutex_unlock(&_mutex_woz);
 }
 
 int tictactoeBrain::randomStrategyMove()
@@ -542,6 +622,16 @@ void tictactoeBrain::pubAnimation(std::string emotion)
     animator_pub.publish(msg);
 }
 
+void tictactoeBrain::pubWozSt(const ros::TimerEvent&)
+{
+	baxter_collaboration_msgs::WOZ msg;
+	msg.dance = getWozDance();
+	msg.wave = getWozWave();
+	msg.giggle = getWozGiggle();
+	msg.cheat = getWozCheat();
+	woz_st_pub.publish(msg);
+}
+
 void tictactoeBrain::playGesture(TTTController::gesture_t gid)
 {
 	leftArmCtrl.startAction(ACTION_GESTURE, gid, false);
@@ -605,6 +695,8 @@ tictactoeBrain::~tictactoeBrain()
 {
     pthread_mutex_destroy(&_mutex_brain);
     pthread_mutex_destroy(&mutex_curr_board);
+    pthread_mutex_destroy(&_mutex_woz);
     brainstate_timer.stop();
     invitation_timer.stop();
+    woz_timer.stop();
 }

@@ -152,7 +152,7 @@ void tictactoeBrain::playOneGame()
 {
     int winner  = WIN_NONE;
 
-    bool has_to_cheat=false;
+    bool has_to_cheat=getWozCheat();
 
     for (size_t j = 0; j < cheating_games.size(); ++j)
     {
@@ -172,11 +172,12 @@ void tictactoeBrain::playOneGame()
 
     while (winner == WIN_NONE && not internal_board.isFull() && not ros::isShuttingDown())
     {
+    	int cell_toMove;
         if (robot_turn) // Robot's turn
         {
             if (n_robot_tokens != 0) { saySentence("It is my turn", 0.3); }
 
-            int cell_toMove = getNextMove();    // This should be from 1 to 9
+            cell_toMove = getNextMove();    // This should be from 1 to 9
             ROS_INFO("Moving to cell %i", cell_toMove);
 
             rightArmCtrl.startAction(ACTION_PICKUP, highest_empty_pool + 1 + internal_board.getNumCells());
@@ -201,8 +202,31 @@ void tictactoeBrain::playOneGame()
             waitForOpponentTurn(n_robot_tokens);
         }
 
-        robot_turn = not robot_turn;
+
+        if(!has_cheated){
         winner = getWinner();
+        robot_turn = not robot_turn;
+        }else{
+        //todo
+        ros::Rate rate(20);
+        int cnt = 0;
+        while(ros::ok() && cnt < 40)
+        {
+        	if(getCurrBoard().getCell(cell_toMove-1).getState() == COL_RED)
+        		cnt++;
+        	else{
+        		cnt = 0;
+        		}
+
+        	rate.sleep();
+        }
+        has_cheated=false;
+        setStrategy("smart");
+        setWozCheat(false);
+        internal_board.setCellState(cell_toMove-1, COL_RED);
+        getCurrBoard().setCellState(cell_toMove-1, COL_RED);
+        ROS_INFO("EXITED LOOP");
+        }
     }
 
 
@@ -215,6 +239,7 @@ void tictactoeBrain::playOneGame()
             {
 				pubAnimation("dance");
 				playGesture(TTTController::victory); // Play gesture victory
+				pubAnimation("welcome");
             }
 
             if (has_cheated)

@@ -882,7 +882,7 @@ bool TTTController::playbackJoints()
 		for(int i = start_id; i < JOINT_NUM + start_id; i++)
 		{
 			next_wp.push_back(wps[j][i]);
-			ROS_INFO("Reached Line i=%i,j=%i",i,j);
+			//ROS_INFO("Reached Line i=%i,j=%i",i,j);
 		}
 
 		// Keep sending message to limb topic until position reached or timeout

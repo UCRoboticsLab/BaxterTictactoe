@@ -185,7 +185,7 @@ void tictactoeBrain::playOneGame()
             internal_board.setCellState(cell_toMove-1, getRobotColor());
             n_robot_tokens = internal_board.getNumTokens(getRobotColor());
 
-            if(internal_board.twoInARow(getRobotColor())){
+            if(internal_board.twoInARow(getRobotColor(),cell_toMove-1)){
             	// Please use the get function to access WOZ state for thread safty
             	if(getWozGiggle())
             	{

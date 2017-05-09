@@ -304,7 +304,7 @@ public:
      *
      * @return True in case of a 3 token row of the specific color is found.
      **/
-    bool twoInARow(const std::string& _col);
+    bool twoInARow(const std::string& _col, int cell);
 
     /**
      * Converts a MsgBoard object to the board.

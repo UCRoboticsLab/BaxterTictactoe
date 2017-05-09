@@ -92,7 +92,9 @@ def listening():
 
 def on_close():
     pub.unregister()
+    rospy .signal_shutdown("Closing thread to prevent process being kept open")
     root.destroy()
+    
 
 if __name__ == '__main__':
     pros = []
@@ -141,7 +143,7 @@ if __name__ == '__main__':
     cheat.set("Cheat: Disabled")
 
     #initialize the node
-    rospy.init_node('woz_gui', anonymous=True)
+    rospy.init_node('woz_gui', anonymous=False)
     #create publisher on main thread
     pub = rospy.Publisher('woz_cmd', WOZ, queue_size=1)
 

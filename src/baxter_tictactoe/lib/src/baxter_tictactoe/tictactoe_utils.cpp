@@ -440,36 +440,36 @@ bool Board::threeInARow(const string& _col)
     return false;
 }
 
-bool Board::twoInARow(const string& _col)
+bool Board::twoInARow(const string& _col, int cell)
 {
     if (_col!=COL_BLUE && _col!=COL_RED) { return false; }
 
     // Rows
     //top row
-    if (getCellState(1)==_col && getCellState(2)==_col) { return true; }
-    if (getCellState(0)==_col && getCellState(1)==_col) { return true; }
+    if (getCellState(1)==_col && getCellState(2)==_col && getCellState(0)==COL_EMPTY &&(cell == 1 ||cell == 2)) { return true; }
+    if (getCellState(0)==_col && getCellState(1)==_col && getCellState(2)==COL_EMPTY &&(cell == 0 ||cell == 1)) { return true; }
     //mid row
-    if (getCellState(4)==_col && getCellState(3)==_col) { return true; }
-    if (getCellState(4)==_col && getCellState(5)==_col) { return true; }
+    if (getCellState(4)==_col && getCellState(3)==_col && getCellState(5)==COL_EMPTY &&(cell == 3 ||cell == 4)) { return true; }
+    if (getCellState(4)==_col && getCellState(5)==_col && getCellState(3)==COL_EMPTY &&(cell == 4 ||cell == 5)) { return true; }
     //bottom row
-    if (getCellState(6)==_col && getCellState(7)==_col) { return true; }
-    if (getCellState(7)==_col && getCellState(8)==_col) { return true; }
+    if (getCellState(6)==_col && getCellState(7)==_col && getCellState(8)==COL_EMPTY &&(cell == 6 ||cell == 7)) { return true; }
+    if (getCellState(7)==_col && getCellState(8)==_col && getCellState(6)==COL_EMPTY &&(cell == 7 ||cell == 8)) { return true; }
     //Coloumns
     //col1
-    if (getCellState(0)==_col && getCellState(3)==_col) { return true; }
-    if (getCellState(3)==_col && getCellState(6)==_col) { return true; }
+    if (getCellState(0)==_col && getCellState(3)==_col && getCellState(6)==COL_EMPTY &&(cell == 0 ||cell == 3)) { return true; }
+    if (getCellState(3)==_col && getCellState(6)==_col && getCellState(0)==COL_EMPTY &&(cell == 3 ||cell == 6)) { return true; }
     //col2
-    if (getCellState(4)==_col && getCellState(1)==_col) { return true; }
-    if (getCellState(4)==_col && getCellState(7)==_col) { return true; }
+    if (getCellState(4)==_col && getCellState(1)==_col && getCellState(7)==COL_EMPTY &&(cell == 4 ||cell == 1)) { return true; }
+    if (getCellState(4)==_col && getCellState(7)==_col && getCellState(1)==COL_EMPTY &&(cell == 4 ||cell == 7)) { return true; }
     //col3
-    if (getCellState(2)==_col && getCellState(5)==_col) { return true; }
-    if (getCellState(5)==_col && getCellState(8)==_col) { return true; }
+    if (getCellState(2)==_col && getCellState(5)==_col && getCellState(8)==COL_EMPTY &&(cell == 5 ||cell == 2)) { return true; }
+    if (getCellState(5)==_col && getCellState(8)==_col && getCellState(2)==COL_EMPTY &&(cell == 5 ||cell == 8)) { return true; }
 
     // Diagonals
-    if (getCellState(4)==_col && getCellState(8)==_col) { return true; }
-    if (getCellState(2)==_col && getCellState(4)==_col) { return true; }
-    if (getCellState(0)==_col && getCellState(4)==_col) { return true; }
-    if (getCellState(4)==_col && getCellState(6)==_col) { return true; }
+    if (getCellState(4)==_col && getCellState(8)==_col && getCellState(0)==COL_EMPTY &&(cell == 4 ||cell == 8)) { return true; }
+    if (getCellState(2)==_col && getCellState(4)==_col && getCellState(6)==COL_EMPTY &&(cell == 2 ||cell == 4)) { return true; }
+    if (getCellState(0)==_col && getCellState(4)==_col && getCellState(8)==COL_EMPTY &&(cell == 0 ||cell == 4)) { return true; }
+    if (getCellState(4)==_col && getCellState(6)==_col && getCellState(2)==COL_EMPTY &&(cell == 4 ||cell == 6)) { return true; }
     return false;
 }
 

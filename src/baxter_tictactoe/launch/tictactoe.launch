@@ -17,14 +17,14 @@
         V: [ 10, 256]
     </rosparam>
 
-    <rosparam param = "ttt_controller/tile_pile_position">[0.5307, 0.5255, -0.045,0.6307, 0.4255, 0.4307, 0.6255, 0.7307, 0.3255,0.2307, 0.9255]</rosparam>
+    <rosparam param = "ttt_controller/tile_pile_position">[0.6937, -0.5924, -0.0635,0.5794, -0.5895, 0.5767, -0.4803, 0.4469, -0.5912, 0.4417, -0.4695]</rosparam>
 
     <!-- 3D positions of the corners of the board -->
     <rosparam param = "ttt_controller/board_corner_poss">
-        TL: [0.7238, 0.2426, -0.0303]
-        TR: [0.7345, -0.0100, -0.0303]
-        BR: [0.5088, -0.0097, -0.0303]
-        BL: [0.4765, 0.2197, -0.0303]
+        TL: [0.8114, -0.0493, -0.053]
+        TR: [0.8134, -0.2801, -0.053]
+        BR: [0.5714, -0.2895, -0.053]
+        BL: [0.5704, -0.0452, -0.053]
     </rosparam>
 
     <rosparam param="ttt_controller/num_games">1</rosparam>

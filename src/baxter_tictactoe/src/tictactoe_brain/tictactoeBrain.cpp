@@ -6,8 +6,8 @@ using namespace std;
 using namespace baxter_tictactoe;
 
 tictactoeBrain::tictactoeBrain(std::string _name, std::string _strategy, bool legacy_code) : _nh(_name),
-                               spinner(10), r(100), _legacy_code(legacy_code), num_games(NUM_GAMES), curr_game(0),
-                               robot_turn(false), highest_empty_pool(0), woz_dance(false), woz_wave(false),
+                               spinner(13), r(100), _legacy_code(legacy_code), num_games(NUM_GAMES), curr_game(0),
+                               robot_turn(false), highest_empty_pool(0), woz_dance(false), woz_wave(true),
                                woz_giggle(false), woz_cheat(false),wins(3,0), curr_board(9), internal_board(9),
                                _is_board_detected(false),leftArmCtrl(_name, "left", legacy_code),
                                rightArmCtrl(_name, "right", legacy_code), n_robot_tokens(0), n_human_tokens(0)
@@ -35,7 +35,7 @@ tictactoeBrain::tictactoeBrain(std::string _name, std::string _strategy, bool le
     animator_pub   = _nh.advertise<std_msgs::String>("/emotion", 1);
 
     brainstate_timer = _nh.createTimer(ros::Duration(0.1), &tictactoeBrain::publishTTTBrainState, this, false);
-    invitation_timer = _nh.createTimer(ros::Duration(10), &tictactoeBrain::invitationCB, this, false);
+    invitation_timer = _nh.createTimer(ros::Duration(10), &tictactoeBrain::invitationCB, this, false, false);
     woz_timer =        _nh.createTimer(ros::Duration(1), &tictactoeBrain::pubWozSt, this, false);
 
     _nh.param<string>("voice", _voice_type, VOICE);
@@ -73,12 +73,12 @@ void tictactoeBrain::InternalThreadEntry()
     {
         if      (getBrainState() == TTTBrainState::INIT)
         {
-            leftArmCtrl.startAction(ACTION_SCAN);
+            rightArmCtrl.startAction(ACTION_SCAN);
             setBrainState(TTTBrainState::CALIB);
         }
         else if (getBrainState() == TTTBrainState::CALIB)
         {
-            if (leftArmCtrl.getState() == DONE) { setBrainState(TTTBrainState::READY); }
+            if (rightArmCtrl.getState() == DONE) { setBrainState(TTTBrainState::READY); }
         }
         else if (getBrainState() == TTTBrainState::READY)
         {
@@ -91,12 +91,13 @@ void tictactoeBrain::InternalThreadEntry()
         else if (getBrainState() == TTTBrainState::WAIT)
         {
         	pubAnimation("welcome");  //todo: do we need welcome face on anyway?
-        	if(getWozWave())
-        	{
-        		playGesture(TTTController::wave);
-        		// Play wave once only.
-        		setWozWave(false);
-        	}
+        	//if(getWozWave())
+        	//{
+        	//	ROS_INFO("start waving..");
+        	//	playGesture(TTTController::wave);
+        	//	// Play wave once only.
+        	//	setWozWave(false);
+        	//}
 
         	// Wait for the first move from opponent
         	waitForOpponent2Start();
@@ -178,9 +179,9 @@ void tictactoeBrain::playOneGame()
             int cell_toMove = getNextMove();    // This should be from 1 to 9
             ROS_INFO("Moving to cell %i", cell_toMove);
 
-            leftArmCtrl.startAction(ACTION_PICKUP, highest_empty_pool + 1 + internal_board.getNumCells());
+            rightArmCtrl.startAction(ACTION_PICKUP, highest_empty_pool + 1 + internal_board.getNumCells());
             highest_empty_pool++;
-            leftArmCtrl.startAction(ACTION_PUTDOWN, cell_toMove);
+            rightArmCtrl.startAction(ACTION_PUTDOWN, cell_toMove);
             internal_board.setCellState(cell_toMove-1, getRobotColor());
             n_robot_tokens = internal_board.getNumTokens(getRobotColor());
 
@@ -191,6 +192,7 @@ void tictactoeBrain::playOneGame()
             		// Play giggle only when woz_giggle is true
             		pubAnimation("giggling");
             		playGesture(TTTController::giggle);
+            		pubAnimation("playing");
             	}
             }
         }
@@ -598,6 +600,14 @@ void tictactoeBrain::waitForOpponent2Start()
 			return;
 		} // 100 means 1 second
 
+		if(getWozWave())
+		{
+			ROS_INFO("start waving..");
+			playGesture(TTTController::wave);
+			// Play wave once only.
+			setWozWave(false);
+		}
+
 		r.sleep();
 	}
 }
@@ -684,10 +694,10 @@ void tictactoeBrain::cleanBoard()
 	{
 		//pick up the tile from cell
 		ROS_INFO("Cleaning board, pickup from cell %d", token_id);
-		leftArmCtrl.startAction(ACTION_PICKUP, token_id);
+		rightArmCtrl.startAction(ACTION_PICKUP, token_id);
 		//place the tiles back
 		ROS_INFO("Cleaning board, drop tile to pool %d", highest_empty_pool);
-		leftArmCtrl.startAction(ACTION_PUTDOWN, highest_empty_pool + cellNum);
+		rightArmCtrl.startAction(ACTION_PUTDOWN, highest_empty_pool + cellNum);
 		highest_empty_pool--;
 	}
 
@@ -707,6 +717,6 @@ tictactoeBrain::~tictactoeBrain()
     pthread_mutex_destroy(&mutex_curr_board);
     pthread_mutex_destroy(&_mutex_woz);
     brainstate_timer.stop();
-    invitation_timer.stop();
+    //invitation_timer.stop();
     woz_timer.stop();
 }

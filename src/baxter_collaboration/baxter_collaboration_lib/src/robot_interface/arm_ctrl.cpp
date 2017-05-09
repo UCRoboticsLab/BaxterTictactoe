@@ -609,8 +609,9 @@ bool ArmCtrl::homePoseStrict(bool disable_coll_av)
         goToJointConfNoCheck(home_conf);
 
         r.sleep();
+        //ROS_INFO("continous");
     }
-
+    //ROS_INFO("outofLoop");
     return true;
 }
 

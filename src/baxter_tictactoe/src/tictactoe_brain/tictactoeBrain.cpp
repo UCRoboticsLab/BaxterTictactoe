@@ -7,24 +7,31 @@ using namespace baxter_tictactoe;
 
 tictactoeBrain::tictactoeBrain(std::string _name, std::string _strategy, bool legacy_code) : _nh(_name),
                                spinner(13), r(100), _legacy_code(legacy_code), num_games(NUM_GAMES), curr_game(0),
-                               robot_turn(false), highest_empty_pool(0), woz_dance(false), woz_wave(true),
+                               robot_turn(false), highest_empty_pool(0), woz_dance(false), woz_wave(false),
                                woz_giggle(false), woz_cheat(false),wins(3,0), curr_board(9), internal_board(9),
                                _is_board_detected(false),leftArmCtrl(_name, "left", legacy_code),
                                rightArmCtrl(_name, "right", legacy_code), n_robot_tokens(0), n_human_tokens(0)
 {
     printf("\n");
-    ROS_INFO("Legacy code %s enabled.", legacy_code?"is":"is not");
-    setBrainState(TTTBrainState::INIT);
+    //[UC: edtion]
+    //ROS_INFO("Legacy code %s enabled.", legacy_code?"is":"is not");
+    //setBrainState(TTTBrainState::INIT);
 
     srand(ros::Time::now().nsec);
     setStrategy(_strategy);
 
+    ROS_INFO("Start mutex initiation...");
     pthread_mutexattr_t _mutex_attr;
     pthread_mutexattr_init(&_mutex_attr);
     pthread_mutexattr_settype(&_mutex_attr, PTHREAD_MUTEX_RECURSIVE_NP);
     pthread_mutex_init(&_mutex_brain, &_mutex_attr);
     pthread_mutex_init(&mutex_curr_board, &_mutex_attr);
     pthread_mutex_init(&_mutex_woz, &_mutex_attr);
+    ROS_INFO("Finished mutex initiation ....");
+
+
+    ROS_INFO("Legacy code %s enabled.", legacy_code?"is":"is not");
+    setBrainState(TTTBrainState::INIT);
 
     boardState_sub = _nh.subscribe("/baxter_tictactoe/board_state", SUBSCRIBER_BUFFER,
                                     &tictactoeBrain::boardStateCb, this);
@@ -105,14 +112,14 @@ void tictactoeBrain::InternalThreadEntry()
         }
         else if (getBrainState() == TTTBrainState::MATCH_STARTED)
         {
-            saySentence("Welcome! Let's play Tic Tac Toe.", 3);
-            saySentence("Do not grasp your token before I say that it is your turn", 4);
+            //saySentence("Welcome! Let's play Tic Tac Toe.", 3);
+            //saySentence("Do not grasp your token before I say that it is your turn", 4);
             curr_game = 1;
             setBrainState(TTTBrainState::GAME_STARTED);
         }
         else if (getBrainState() == TTTBrainState::GAME_STARTED)
         {
-            pubAnimation("playing");
+            pubAnimation("welcome");
             //if (getCurrBoard().isEmpty())
 	    if(getCurrBoard().getNumTokens(COL_RED))
             {
@@ -122,7 +129,7 @@ void tictactoeBrain::InternalThreadEntry()
             else if (wipe_out_board_message == true)
             {
                 wipe_out_board_message = false;
-                saySentence("Please clean the board so that we can start a new game.", 6);
+                //saySentence("Please clean the board so that we can start a new game.", 6);
             }
         }
         else if (getBrainState() == TTTBrainState::GAME_RUNNING)
@@ -136,7 +143,7 @@ void tictactoeBrain::InternalThreadEntry()
         }
         else if (getBrainState() == TTTBrainState::MATCH_FINISHED)
         {
-            saySentence("Game over. It was my pleasure to win over you. Thanks for being so human.", 10);
+            //saySentence("Game over. It was my pleasure to win over you. Thanks for being so human.", 10);
             ROS_INFO("Baxter Wins: %i\tHuman Wins: %i\tTies: %i", wins[0], wins[1], wins[2]);
 
             ROS_INFO("Match finished...going to WAIT mode........");
@@ -165,7 +172,7 @@ void tictactoeBrain::playOneGame()
     if (has_to_cheat)   { setStrategy("cheating"); }
     else                { setStrategy(   "smart"); }
 
-    saySentence("I start the game.",2);
+    //saySentence("I start the game.",2);
 
     n_robot_tokens=0;
     n_human_tokens=internal_board.getNumTokens(getOpponentColor());
@@ -175,12 +182,17 @@ void tictactoeBrain::playOneGame()
     	int cell_toMove;
         if (robot_turn) // Robot's turn
         {
-            if (n_robot_tokens != 0) { saySentence("It is my turn", 0.3); }
+        	pubAnimation("playing");
+
+            if (n_robot_tokens != 0) {
+            	//saySentence("It is my turn", 0.3);
+            }
 
             cell_toMove = getNextMove();    // This should be from 1 to 9
             ROS_INFO("Moving to cell %i", cell_toMove);
 
             rightArmCtrl.startAction(ACTION_PICKUP, highest_empty_pool + 1 + internal_board.getNumCells());
+            pubAnimation("welcome");
             highest_empty_pool++;
             rightArmCtrl.startAction(ACTION_PUTDOWN, cell_toMove);
             internal_board.setCellState(cell_toMove-1, getRobotColor());
@@ -196,6 +208,7 @@ void tictactoeBrain::playOneGame()
             		pubAnimation("playing");
             	}
             }
+            rightArmCtrl.goHome();
         }
         else // Participant's turn
         {
@@ -241,25 +254,31 @@ void tictactoeBrain::playOneGame()
 				playGesture(TTTController::victory); // Play gesture victory
 				pubAnimation("welcome");
             }
+            else
+            {
+            	pubAnimation("happy");
+            }
 
             if (has_cheated)
             {
-                saySentence("You humans are so easy to beat!", 3);
+                //saySentence("You humans are so easy to beat!", 3);
             }
-            saySentence("I won", 1);		
+            //saySentence("I won", 1);
             break;
         case WIN_OPP:
             ROS_INFO("OPPONENT's VICTORY");
-            saySentence("You won this time", 2);
+            pubAnimation("sad");
+            //saySentence("You won this time", 2);
             break;
         default:
             ROS_INFO("TIE");
-            saySentence("That's a tie. I will win next time.", 3);
+            //saySentence("That's a tie. I will win next time.", 3);
             winner = WIN_TIE;
     }
 
     cleanBoard();
-	ROS_INFO("Board cleaned, let's start another game.");
+    pubAnimation("welcome");
+	ROS_INFO("WHERE BOARD CLEAN FUNCTION IS IMPLEMENTED");
 
 	setBrainState(TTTBrainState::GAME_FINISHED);
 	robot_turn = false; //[UC edition] let the player start first
@@ -355,7 +374,7 @@ void tictactoeBrain::invitationCB(const ros::TimerEvent&)
 	// Simply say something and block long enough to avoid overlapping.
 	if(getBrainState() == TTTBrainState::READY)
 	{
-		saySentence("Random", 3);
+		//saySentence("Random", 3);
 	}
 	else
 	{
@@ -578,7 +597,7 @@ void tictactoeBrain::waitForOpponentTurn(const size_t& n_robot_tokens)
         {
             if (say_it_is_your_turn == true)
             {
-                saySentence("It is your turn", 0.1);
+                //saySentence("It is your turn", 0.1);
                 say_it_is_your_turn = false;
             }
 
@@ -709,7 +728,7 @@ int tictactoeBrain::getNextRobotTile(baxter_tictactoe::Board & board)
 void tictactoeBrain::cleanBoard()
 {
 	int token_id;
-	size_t cellNum = internal_board.getNumCells();
+	//size_t cellNum = internal_board.getNumCells();
 	// take a snapshot of the current board
 	baxter_tictactoe::Board catched_board = getCurrBoard();
 
@@ -718,14 +737,15 @@ void tictactoeBrain::cleanBoard()
 		   highest_empty_pool > 0)
 	{
 		//pick up the tile from cell
-		ROS_INFO("Cleaning board, pickup from cell %d", token_id);
-		rightArmCtrl.startAction(ACTION_PICKUP, token_id);
+		//ROS_INFO("Cleaning board, pickup from cell %d", token_id);
+		//rightArmCtrl.hoverAboveTokens(Z_LOW);
+		//rightArmCtrl.startAction(ACTION_PICKUP, token_id);
 		//place the tiles back
-		ROS_INFO("Cleaning board, drop tile to pool %d", highest_empty_pool);
-		rightArmCtrl.startAction(ACTION_PUTDOWN, highest_empty_pool + cellNum);
-		highest_empty_pool--;
+		//ROS_INFO("Cleaning board, drop tile to pool %d", highest_empty_pool);
+		//rightArmCtrl.startAction(ACTION_PUTDOWN, highest_empty_pool + cellNum);
+		//highest_empty_pool--;
 	}
-
+	highest_empty_pool=0;
 	// wait until the board is cleaned and keep cleaned for 2 seconds
 	int empty_timer = 0;
 	ros::Rate rate(10);

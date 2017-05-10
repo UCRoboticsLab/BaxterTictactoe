@@ -21,7 +21,7 @@ class Animation:
         self.old_emotion = "welcome"
         #attentive, confused
         self.direction = True
-        self.emotion_list = ["welcome","giggling","confused", "playing", "dance"]
+        self.emotion_list = ["welcome","giggling","confused", "playing", "dance", "happy", "sad"]
         self.once = True
 
 
@@ -44,7 +44,21 @@ class Animation:
         temp_images = [cv2.imread(path) for path in temp_fnames]
         self.image_map["giggling"] = list(temp_images)
 
+	# read images from heard_and_understand the directory and store in map
+        temp_subdirectory = "sad/"
+        temp_complete_path = directory + temp_subdirectory
+        temp_fnames = [fname for fname in glob.glob("%s/*" % temp_complete_path)]
+        temp_fnames.sort()
+        temp_images = [cv2.imread(path) for path in temp_fnames]
+        self.image_map["sad"] = list(temp_images)
 
+	# read images from heard_and_understand the directory and store in map
+        temp_subdirectory = "happy/"
+        temp_complete_path = directory + temp_subdirectory
+        temp_fnames = [fname for fname in glob.glob("%s/*" % temp_complete_path)]
+        temp_fnames.sort()
+        temp_images = [cv2.imread(path) for path in temp_fnames]
+        self.image_map["happy"] = list(temp_images)
 
         # read images from heard_and_understand the directory and store in map
         temp_subdirectory = "confused/"

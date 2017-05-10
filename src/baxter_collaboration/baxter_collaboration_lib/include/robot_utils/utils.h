@@ -52,7 +52,10 @@
 #define INV_KIN_FAILED  baxter_collaboration_msgs::DoAction::Response::INV_KIN_FAILED
 
 #define Z_HIGH         0.400
-#define Z_LOW          0.200
+#define Z_LOW          0.250
+
+#define OFFSET_X       0.00;
+#define OFFSET_Y       0.00;
 
 #define ARM_SPEED      0.120    // [m/s]
 #define ARM_ROT_SPEED  1.000    // [rad/s] ?

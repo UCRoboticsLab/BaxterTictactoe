@@ -664,6 +664,7 @@ void ArmCtrl::setHomeConfiguration(std::string _loc)
 bool ArmCtrl::goHome()
 {
     bool res = homePoseStrict();
+    //ROS_INFO("[%s] home position reached %s", getLimb().c_str(), res? "True":"False");
     releaseObject();
     return res;
 }

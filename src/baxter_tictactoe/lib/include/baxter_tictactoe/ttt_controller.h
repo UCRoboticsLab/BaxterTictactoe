@@ -91,7 +91,7 @@ private:
          *
          * @return true/false if success/failure
          */
-        bool hoverAboveCell();
+        bool hoverAboveCell(double height);
 
         /*
          * Hovers arm above tokens

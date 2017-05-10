@@ -36,9 +36,10 @@ const double wave_wp[][JOINT_NUM * 2 + 1] = {
 														{6.015908,0.738611748523,0.857878754645,-0.0997087510986,0.684538925812,-0.316000041943,0.803805931934,-0.312932080371,-0.858262249841,0.862097201807,3.05070428842,2.61620423075,-3.04073341331,-0.30756314762,-1.6486458499},
 														{8.555666,0.738611748523,0.856728269055,-0.100475741492,0.684155430615,-0.31638353714,0.800737970361,-0.314849556354,-0.821830206171,0.695660286511,3.05185477401,1.16812636864,-3.04840331724,-0.224728185168,-1.64174293636},
 														{10.515908,0.738611748523,0.857878754645,-0.0997087510986,0.684538925812,-0.316000041943,0.803805931934,-0.312932080371,-0.858262249841,0.862097201807,3.05070428842,2.61620423075,-3.04073341331,-0.30756314762,-1.6486458499},
-														{12.55555,0.564888424493,0.708699123193,0.0180242742371,0.768907869049,-1.19612151799,0.525771914447,3.0418838989,-0.807640883899,-0.223577699579,0.197500026215,0.302194214868,-3.04993729803,-0.0260776733643,0.130771862018},
-														{14.879484,0.566805900476,0.711767084766,0.0161067982544,0.768140878656,-1.19382054681,0.528072885626,3.03996642292,-0.672267079523,-1.00974285247,0.21897575722,1.21337880183,-0.0368155388672,1.70885459575,-1.25709725424}
-																							};
+														{12.55555,0.738611748523,0.856728269055,-0.100475741492,0.684155430615,-0.31638353714,0.800737970361,-0.314849556354,-0.821830206171,0.695660286511,3.05185477401,1.16812636864,-3.04840331724,-0.224728185168,-1.64174293636},
+														{14.55555,0.564888424493,0.708699123193,0.0180242742371,0.768907869049,-1.19612151799,0.525771914447,3.0418838989,-0.807640883899,-0.223577699579,0.197500026215,0.302194214868,-3.04993729803,-0.0260776733643,0.130771862018},
+														{16.879484,0.566805900476,0.711767084766,0.0161067982544,0.768140878656,-1.19382054681,0.528072885626,3.03996642292,-0.672267079523,-1.00974285247,0.21897575722,1.21337880183,-0.0368155388672,1.70885459575,-1.25709725424}
+											};
 
 
 
@@ -98,21 +99,22 @@ bool TTTController::tilesPilePosFromParam(XmlRpc::XmlRpcValue _params)
     {
         ROS_ASSERT(_params[j].getType()==XmlRpc::XmlRpcValue::TypeDouble);
     }
+
     //UC changed from original
-    _tiles_pile_pos0.x = _params[0];
-    _tiles_pile_pos0.y = _params[1];
+    _tiles_pile_pos0.x = (double)_params[0] + OFFSET_X;
+    _tiles_pile_pos0.y = (double)_params[1] + OFFSET_Y;
     _tiles_pile_pos0.z = _params[2];
-    _tiles_pile_pos1.x = _params[3];
-    _tiles_pile_pos1.y = _params[4];
+    _tiles_pile_pos1.x = (double)_params[3] + OFFSET_X;
+    _tiles_pile_pos1.y = (double)_params[4] + OFFSET_Y;
     _tiles_pile_pos1.z = _params[2];
-    _tiles_pile_pos2.x = _params[5];
-    _tiles_pile_pos2.y = _params[6];
+    _tiles_pile_pos2.x = (double)_params[5] + OFFSET_X;
+    _tiles_pile_pos2.y = (double)_params[6] + OFFSET_Y;
     _tiles_pile_pos2.z = _params[2];
-    _tiles_pile_pos3.x = _params[7];
-    _tiles_pile_pos3.y = _params[8];
+    _tiles_pile_pos3.x = (double)_params[7] + OFFSET_X;
+    _tiles_pile_pos3.y = (double)_params[8] + OFFSET_Y;
     _tiles_pile_pos3.z = _params[2];
-    _tiles_pile_pos4.x = _params[9];
-    _tiles_pile_pos4.y = _params[10];
+    _tiles_pile_pos4.x = (double)_params[9] + OFFSET_X;
+    _tiles_pile_pos4.y = (double)_params[10] + OFFSET_Y;
     _tiles_pile_pos4.z = _params[2];
     coords[0] = _tiles_pile_pos0;
     coords[1] = _tiles_pile_pos1;
@@ -143,8 +145,8 @@ bool TTTController::boardPossFromParam(XmlRpc::XmlRpcValue _params)
             i->first == "BR" || i->first == "BL")
         {
             geometry_msgs::Point p;
-            p.x = i->second[0];
-            p.y = i->second[1];
+            p.x = (double)i->second[0]+ OFFSET_X;
+            p.y = (double)i->second[1]+ OFFSET_Y;
             p.z = i->second[2];
 
             _board_corners_poss.push_back(p);
@@ -924,24 +926,27 @@ bool TTTController::hoverAboveBoard()
 bool TTTController::hoverAboveCenterOfBoard()
 {
     ROS_DEBUG("Hovering above center of board..");
+    bool res;
 
     if (_legacy_code == true)
     {
-        return goToPose(HOVER_BOARD_X + _offsets[4].x,
+        return goToPoseNoCheck(HOVER_BOARD_X + _offsets[4].x,
                         HOVER_BOARD_Y + _offsets[4].y,
                         HOVER_BOARD_Z - _offsets[4].z + 0.3,    // TODO this minus sign is a bug
                         VERTICAL_ORI_L);
     }
     else
     {
-        return goToPose(_board_centers_poss[4].x,
+        res = goToPose(_board_centers_poss[4].x,
                         _board_centers_poss[4].y,
                         _board_centers_poss[4].z + 0.3,
                         VERTICAL_ORI_L);
+         ROS_INFO("Hover the centre of the board %s", res ? "Success":"Fail");
+         return res;
     }
 }
 
-bool TTTController::hoverAboveCell()
+bool TTTController::hoverAboveCell(double height)
 {
     ROS_DEBUG("Hovering above cell..");
 
@@ -960,14 +965,16 @@ bool TTTController::hoverAboveCell()
     			_board_centers_poss[getObjectID()-1].y);
         return goToPose(_board_centers_poss[getObjectID()-1].x,
                         _board_centers_poss[getObjectID()-1].y,
-                        _board_centers_poss[getObjectID()-1].z + 0.05,
+                        _board_centers_poss[getObjectID()-1].z + height,
                         VERTICAL_ORI_L);
     }
 }
 
 bool TTTController::hoverAboveTokens(double height)
 {
-    return goToPose(0.586, -0.491, height, VERTICAL_ORI_L);
+	/*x: 0.556375635921
+    y: -0.579*/
+    return goToPose(0.599, -0.611, height+0.1, VERTICAL_ORI_L);
 }
 
 bool TTTController::scanBoardImpl()
@@ -1001,6 +1008,7 @@ bool TTTController::scanBoardImpl()
 
 bool TTTController::pickUpTokenImpl()
 {
+	ros::Duration rest_time(0.25);
     ROS_DEBUG("Picking up token..");
     setTracIK(true);
 
@@ -1019,16 +1027,25 @@ bool TTTController::pickUpTokenImpl()
 
     ROS_INFO("token pos: x = %f, y = %f", _board_centers_poss[getObjectID()-1].x,
     									  _board_centers_poss[getObjectID()-1].y); // Debug
-    if(getObjectID() > 9) hoverAboveTokens(Z_LOW); // playing
-    else hoverAboveCenterOfBoard(); // cleaning
+    if(getObjectID() > 9){
+    	hoverAboveTokens(Z_LOW); // playing
 
-    hoverAboveCell(); // hover above the cell or pool containing the next tile
+    }
+    else {
+    		hoverAboveTokens(Z_LOW);
+        	hoverAboveCenterOfBoard(); // cleaning
+        }// cleaning
+
+    hoverAboveCell(0.1); // hover above the cell or pool containing the next tile
+    rest_time.sleep();
     gripToken();
-    hoverAboveCell(); // lift tile up
+    hoverAboveCell(0.1); // lift tile up
 
     if(getObjectID() > 9) hoverAboveTokens(Z_LOW); // playing
-    else hoverAboveCenterOfBoard(); // cleaning
-
+    else {
+    	//hoverAboveTokens(Z_LOW);
+    	hoverAboveCenterOfBoard(); // cleaning
+    }
     setTracIK(false);
 
     return true;
@@ -1045,17 +1062,17 @@ bool TTTController::putDownTokenImpl()
     	}
     }
     else {if (!hoverAboveTokens(Z_LOW)) return false;}
-    if (!hoverAboveCell())
+    if (!hoverAboveCell(0.015))
     {
     	ROS_WARN("Fail to hover over cell %d", getObjectID());
     	return false;
     }
-    ros::Duration(0.1).sleep();
+    ros::Duration(0.5).sleep();
     if (!releaseObject()) return false;
     if(getObjectID() < 9) {if (!hoverAboveCenterOfBoard()) return false;}
     //else {if (!hoverAboveTokens(Z_LOW)) return false;}
     hoverAboveTokens(Z_LOW);
-
+    //goHome();
     return true;
 }
 

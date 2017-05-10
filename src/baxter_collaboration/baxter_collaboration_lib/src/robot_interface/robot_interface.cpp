@@ -590,7 +590,7 @@ bool RobotInterface::goToPose(double px, double py, double pz,
         }
         else
         {
-            if (is_coll_av_on == true)
+        	if (is_coll_av_on == true)
             {
                 ROS_ERROR("Collision Occurred! Stopping.");
                 return false;
@@ -708,7 +708,7 @@ bool RobotInterface::hasCollidedIR(string mode)
     else if (getLimb() == "right")
     {
         if      (mode == "strict") thres = 0.089;
-        else if (mode ==  "loose") thres = 0.110;
+        else if (mode ==  "loose") thres = 0.138;
     }
     else
     {

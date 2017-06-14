@@ -101,20 +101,20 @@ bool TTTController::tilesPilePosFromParam(XmlRpc::XmlRpcValue _params)
     }
 
     //UC changed from original
-    _tiles_pile_pos0.x = (double)_params[0] + OFFSET_X;
-    _tiles_pile_pos0.y = (double)_params[1] + OFFSET_Y;
+    _tiles_pile_pos0.x = (double)_params[0];// + OFFSET_X;
+    _tiles_pile_pos0.y = (double)_params[1];// + OFFSET_Y;
     _tiles_pile_pos0.z = _params[2];
-    _tiles_pile_pos1.x = (double)_params[3] + OFFSET_X;
-    _tiles_pile_pos1.y = (double)_params[4] + OFFSET_Y;
+    _tiles_pile_pos1.x = (double)_params[3]; //+ OFFSET_X;
+    _tiles_pile_pos1.y = (double)_params[4]; //+ OFFSET_Y;
     _tiles_pile_pos1.z = _params[2];
-    _tiles_pile_pos2.x = (double)_params[5] + OFFSET_X;
-    _tiles_pile_pos2.y = (double)_params[6] + OFFSET_Y;
+    _tiles_pile_pos2.x = (double)_params[5]; //+ OFFSET_X;
+    _tiles_pile_pos2.y = (double)_params[6]; //+ OFFSET_Y;
     _tiles_pile_pos2.z = _params[2];
-    _tiles_pile_pos3.x = (double)_params[7] + OFFSET_X;
-    _tiles_pile_pos3.y = (double)_params[8] + OFFSET_Y;
+    _tiles_pile_pos3.x = (double)_params[7]; //+ OFFSET_X;
+    _tiles_pile_pos3.y = (double)_params[8]; //+ OFFSET_Y;
     _tiles_pile_pos3.z = _params[2];
-    _tiles_pile_pos4.x = (double)_params[9] + OFFSET_X;
-    _tiles_pile_pos4.y = (double)_params[10] + OFFSET_Y;
+    _tiles_pile_pos4.x = (double)_params[9]; //+ OFFSET_X;
+    _tiles_pile_pos4.y = (double)_params[10]; //+ OFFSET_Y;
     _tiles_pile_pos4.z = _params[2];
     coords[0] = _tiles_pile_pos0;
     coords[1] = _tiles_pile_pos1;
@@ -236,10 +236,12 @@ bool TTTController::gripToken()
 
     ros::Time start_time = ros::Time::now();
     double start_z = getPos().z;
+    ros::Duration wait_for_grip(2);
 
     while(RobotInterface::ok())
     {
         double px = 0.0, py = 0.0, pz = 0.0;
+
 
         if (_legacy_code == true)
         {
@@ -255,18 +257,19 @@ bool TTTController::gripToken()
         {
             px = getPos().x; // current pose
             py = getPos().y; // current pose
-            pz = start_z - 0.10 * (ros::Time::now() - start_time).toSec();
+            pz = start_z - 0.05 * (ros::Time::now() - start_time).toSec();
         }
 
         goToPoseNoCheck(px,py,pz,VERTICAL_ORI_L);
+        //goToPose(px,py,pz,VERTICAL_ORI_L);
 
-        if(pz < -0.3)
+        if(pz < -0.1)
         {
             ROS_WARN("I went too low! Exiting.");
 
             if (_legacy_code == true) { destroyCVWindows(); }
             gripObject();
-
+            wait_for_grip.sleep();
             return false;
         }
 
@@ -277,6 +280,7 @@ bool TTTController::gripToken()
     if (_legacy_code == true) { destroyCVWindows(); }
     gripObject();
 
+    wait_for_grip.sleep();
     return true;
 }
 
@@ -1008,8 +1012,8 @@ bool TTTController::scanBoardImpl()
 
 bool TTTController::pickUpTokenImpl()
 {
-	ros::Duration rest_time(0.25);
-    ROS_DEBUG("Picking up token..");
+	ros::Duration rest_time(1);
+    ROS_INFO("Picking up token..");
     setTracIK(true);
 
     while(RobotInterface::ok())
@@ -1036,7 +1040,7 @@ bool TTTController::pickUpTokenImpl()
         	hoverAboveCenterOfBoard(); // cleaning
         }// cleaning
 
-    hoverAboveCell(0.1); // hover above the cell or pool containing the next tile
+    hoverAboveCell(0.03); // hover above the cell or pool containing the next tile
     rest_time.sleep();
     gripToken();
     hoverAboveCell(0.1); // lift tile up
@@ -1062,12 +1066,12 @@ bool TTTController::putDownTokenImpl()
     	}
     }
     else {if (!hoverAboveTokens(Z_LOW)) return false;}
-    if (!hoverAboveCell(0.015))
+    if (!hoverAboveCell(0.00))
     {
     	ROS_WARN("Fail to hover over cell %d", getObjectID());
     	return false;
     }
-    ros::Duration(0.5).sleep();
+    ros::Duration(0.1).sleep();
     if (!releaseObject()) return false;
     if(getObjectID() < 9) {if (!hoverAboveCenterOfBoard()) return false;}
     //else {if (!hoverAboveTokens(Z_LOW)) return false;}

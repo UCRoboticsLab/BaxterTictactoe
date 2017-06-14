@@ -5,26 +5,30 @@
 
     <!-- Range thresholds for the red tokens -->
     <rosparam param = "ttt_controller/hsv_red">
-        H: [160,  20]
-        S: [ 40, 196]
-        V: [ 50, 196]
+        H: [0,7]
+        S: [189,256]
+        V: [100,137]
     </rosparam>
 
     <!-- Range thresholds for the blue tokens -->
     <rosparam param = "ttt_controller/hsv_blue">
-        H: [ 60, 130]
-        S: [ 90, 256]
-        V: [ 10, 256]
+        H: [113,152]
+        S: [99,246]
+        V: [27,245]
     </rosparam>
 
-    <rosparam param = "ttt_controller/tile_pile_position">[0.6924,-0.6458,0.5746,-0.6478, -0.05295,0.5746,-0.6478,0.5786,-0.5508,0.4576, -0.6597,0.4417,-0.5439]</rosparam>
+    <rosparam param = "ttt_controller/tile_pile_position">[    0.657,-0.638, -0.05,
+0.558, -0.633, 
+0.551,-0.525, 
+0.436,-0.638,
+0.461275197494, -0.662352094183]</rosparam>
 
     <!-- 3D positions of the corners of the board -->
     <rosparam param = "ttt_controller/board_corner_poss">
-        TL: [0.7859,-0.0868,-0.04]
-        TR: [0.7982,-0.3258,-0.04]
-        BR: [0.5566,-0.3366,-0.04]
-        BL: [0.5597,-0.0991,-0.04]
+        TL: [0.7657,-0.0759,-0.08]
+        TR: [0.7763,-0.3180,-0.08]
+        BR: [0.5341,-0.3226,-0.08]
+        BL: [0.5319,-0.0842,-0.08]
     </rosparam>
 
     <rosparam param="ttt_controller/num_games">1</rosparam>

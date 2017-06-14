@@ -112,8 +112,8 @@ void tictactoeBrain::InternalThreadEntry()
         }
         else if (getBrainState() == TTTBrainState::MATCH_STARTED)
         {
-            //saySentence("Welcome! Let's play Tic Tac Toe.", 3);
-            //saySentence("Do not grasp your token before I say that it is your turn", 4);
+            saySentence("Welcome! Let's play Tic Tac Toe.", 3);
+            saySentence("Do not grasp your token before I say that it is your turn", 4);
             curr_game = 1;
             setBrainState(TTTBrainState::GAME_STARTED);
         }
@@ -190,7 +190,7 @@ void tictactoeBrain::playOneGame()
 
             cell_toMove = getNextMove();    // This should be from 1 to 9
             ROS_INFO("Moving to cell %i", cell_toMove);
-
+            pubAnimation("playing");
             rightArmCtrl.startAction(ACTION_PICKUP, highest_empty_pool + 1 + internal_board.getNumCells());
             pubAnimation("welcome");
             highest_empty_pool++;
@@ -205,7 +205,10 @@ void tictactoeBrain::playOneGame()
             		// Play giggle only when woz_giggle is true
             		pubAnimation("giggling");
             		playGesture(TTTController::giggle);
+            		ros::Duration wait_g(5);
+            		wait_g.sleep();
             		pubAnimation("playing");
+            		setWozGiggle(false);
             	}
             }
             rightArmCtrl.goHome();
@@ -217,19 +220,19 @@ void tictactoeBrain::playOneGame()
 
 
         if(!has_cheated){
-        winner = getWinner();
-        robot_turn = not robot_turn;
+			winner = getWinner();
+			robot_turn = not robot_turn;
         }else{
-        //todo
-        ros::Rate rate(20);
-        int cnt = 0;
-        while(ros::ok() && cnt < 40)
-        {
-        	if(getCurrBoard().getCell(cell_toMove-1).getState() == COL_RED)
-        		cnt++;
-        	else{
-        		cnt = 0;
-        		}
+			//todo
+			ros::Rate rate(20);
+			int cnt = 0;
+			while(ros::ok() && cnt < 40)
+			{
+				if(getCurrBoard().getCell(cell_toMove-1).getState() == COL_RED)
+					cnt++;
+				else{
+					cnt = 0;
+					}
 
         	rate.sleep();
         }
@@ -250,7 +253,7 @@ void tictactoeBrain::playOneGame()
             ROS_INFO("ROBOT's VICTORY");
             if(getWozDance())
             {
-				pubAnimation("dance");
+            	pubAnimation("dance");
 				playGesture(TTTController::victory); // Play gesture victory
 				pubAnimation("welcome");
             }
@@ -356,6 +359,13 @@ void tictactoeBrain::setWozWave(bool st)
 {
 	pthread_mutex_lock(&_mutex_woz);
 	woz_wave= st;
+	pthread_mutex_unlock(&_mutex_woz);
+}
+
+void tictactoeBrain::setWozGiggle(bool st)
+{
+	pthread_mutex_lock(&_mutex_woz);
+	woz_giggle= st;
 	pthread_mutex_unlock(&_mutex_woz);
 }
 

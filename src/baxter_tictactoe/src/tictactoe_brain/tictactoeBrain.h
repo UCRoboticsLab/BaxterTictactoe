@@ -272,6 +272,11 @@ public:
 	 **/
 	void setWozWave(bool st);
 
+	/**
+     * Thread safe method to set the individual WOZ wave state
+	 **/
+	void setWozGiggle(bool st);
+
     /**
     * Animator publishing function
     **/

@@ -1,1 +1,11 @@
-build/ .
+#ignore build directory
+build/
+
+#ignore devel directory
+devel/
+
+#ignore eclipse metadata
+.metadata/
+
+#ignore backup files
+*~

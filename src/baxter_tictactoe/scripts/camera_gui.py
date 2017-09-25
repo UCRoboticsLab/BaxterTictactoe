@@ -11,8 +11,9 @@ import tkFileDialog
 import tkSimpleDialog
 from baxter_interface.camera import CameraController 
 from PIL import Image
-from PIL import ImageTk
+from PIL import ImageTk, ImageDraw
 import numpy as np
+from PIL._imaging import outline
 
 
 class StatusBar(tk.Frame):
@@ -60,17 +61,37 @@ class MainWin(object):
         self.panelA.pack(side=tk.LEFT, padx = 10, pady = 10)
         
         self.imageB = Image.fromarray(data, 'RGB')
+        draw = ImageDraw.Draw(self.imageB)
+        draw.rectangle( ((30, 20), (550, 350)), outline="red")
         self.imageB = ImageTk.PhotoImage(self.imageB)
         self.panelB = tk.Label(self.frameA, image=self.imageB)
         self.panelB.pack(side=tk.LEFT, padx = 10, pady = 10)
         
         #============================= Buttons =====================================
         
-        path_btn = tk.Button(self.frameB, text="Select a path", command=self.select_path)
+        path_btn = tk.Button(self.frameB, text="Select a path", command=self.select_path, width=20)
         path_btn.grid(row=0, column=0,padx=10, pady=10)
         
-        path_btn = tk.Button(self.frameB, text="Select a prefix", command=self.select_prefix)
-        path_btn.grid(row=1, column=0,padx=10, pady=10)
+        prefix_btn = tk.Button(self.frameB, text="Select a prefix", command=self.select_prefix, width=20)
+        prefix_btn.grid(row=1, column=0,padx=10, pady=10)
+        
+        moveArm_btn = tk.Button(self.frameB, text="Move arm to position", command=self.move_arm, width=20)
+        moveArm_btn.grid(row=0, column=1,padx=10, pady=10)
+        
+        snapshot_btn = tk.Button(self.frameB, text="Snapshot", command=self.snapshot, width=20)
+        snapshot_btn.grid(row=1, column=1,padx=10, pady=10)
+        
+        up_btn = tk.Button(self.frameB, text="up", command=self.snapshot, width=3)
+        up_btn.grid(row=0, column=5,padx=10, pady=10)
+        
+        down_btn = tk.Button(self.frameB, text="down", command=self.snapshot, width=3)
+        down_btn.grid(row=1, column=5,padx=10, pady=10)
+        
+    def snapshot(self):
+        pass
+    
+    def move_arm(self):
+        pass
         
     def select_path(self):
         global path, prefix

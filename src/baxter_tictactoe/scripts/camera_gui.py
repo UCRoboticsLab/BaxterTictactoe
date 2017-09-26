@@ -122,12 +122,43 @@ class MainWin(object):
         restart_btn = tk.Button(self.frameB, text="Restart anime", command=self.restart_node, width=20)
         restart_btn.grid(row=1, column=2,padx=10, pady=10)
         
-        up_btn = tk.Button(self.frameB, text="up", command=self.snapshot, width=3)
+        up_btn = tk.Button(self.frameB, text="up", command=self.move_up, width=3)
         up_btn.grid(row=0, column=5,padx=10, pady=10)
         
-        down_btn = tk.Button(self.frameB, text="down", command=self.snapshot, width=3)
+        down_btn = tk.Button(self.frameB, text="down", command=self.move_down, width=3)
         down_btn.grid(row=1, column=5,padx=10, pady=10)
+    def relative_move(self, x, y, z):
+        '''
+        move arm related to current pose
+        :param x: relative displacement in x
+        :param y: relative displacement in y
+        :param z: relative displacement in z
+        '''
+        global limb 
+        cur_pose = limb.endpoint_pose()
+        cur_pose_dict = Pose(position=Point(cur_pose["position"][0] + x,
+                                            cur_pose["position"][1] + y,
+                                            cur_pose["position"][2] + z,), 
+                             orientation=cur_pose['orientation'])
+        joint_angles = self.get_joint_position("left", cur_pose_dict)
+        if joint_angles is None:
+            return 
+        limb.move_to_joint_positions(joint_angles, timeout=5, threshold=0.018)
+    
+    def move_up(self):
+        '''
+        move arm up a bit
+        '''
+        self.relative_move(x=0, y=0, z=0.03)
         
+    
+    def move_down(self):
+        '''
+        move arm down a bit
+        '''
+        self.relative_move(x=0, y=0, z=-0.03)
+        
+    
     def draw_box(self):
         # calculate bounding box pixel size in window display
         rect_w, rect_h = tuple(n * pow(0.75, 2) for n in self.max_screen_res)
@@ -152,7 +183,7 @@ class MainWin(object):
         '''
         return a list of joint rotation angles
         :param limb: left or right
-        :param pose: a list containing the desired Cartesian coordinates + Quaternion
+        :param pose: geometry_msgs.pose
         '''
         ns = "ExternalTools/" + limb + "/PositionKinematicsNode/IKService"
         iksvc = rospy.ServiceProxy(ns, SolvePositionIK)
@@ -160,21 +191,8 @@ class MainWin(object):
         hdr = Header(stamp=rospy.Time.now(), frame_id='base')
         poseMsg = PoseStamped(
                 header=hdr,
-                pose=Pose(
-                    position=Point(
-                        x=des_pose[0],
-                        y=des_pose[1],
-                        z=des_pose[2],
-                    ),
-                    orientation=Quaternion(
-                        x=des_pose[3],
-                        y=des_pose[4],
-                        z=des_pose[5],
-                        w=des_pose[6],
-                    ),
-                )
+                pose=copy.deepcopy(des_pose)
             )
-        
         ikreq.pose_stamp.append(poseMsg)
         try:
             rospy.wait_for_service(ns, 5.0)
@@ -372,7 +390,8 @@ root.protocol("WM_DELETE_WINDOW", gui.onClose)
 
 #initlize limb interface
 limb = Limb('left')
-cam_pose = [0.548, 0.890, 0.095, 0, 1, 0, 0]
+cam_pose = Pose(position=Point(x=0.548, y=0.890, z=0.095), 
+                orientation=Quaternion(x=0, y=1, z=0, w=0))
 
 #start listener thread
 lthread = threading.Thread(target=listening, args=[])

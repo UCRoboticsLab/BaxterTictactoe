@@ -6,6 +6,7 @@ A GUI to help user take snapshot with hand camera
   
 """
 import rospy
+import struct
 import Tkinter as tk
 import tkFileDialog, tkMessageBox
 import tkSimpleDialog
@@ -25,6 +26,27 @@ from cv_bridge import CvBridge, CvBridgeError
 from Tkconstants import RIDGE
 import copy
 
+from geometry_msgs.msg import (
+    PoseStamped,
+    Pose,
+    Point,
+    Quaternion,
+)
+
+from baxter_core_msgs.srv import (
+    SolvePositionIK,
+    SolvePositionIKRequest,
+)
+
+from geometry_msgs.msg._PoseStamped import PoseStamped
+from std_msgs.msg import Header
+
+from baxter_interface import Limb
+
+
+
+    
+    
 
 
 class StatusBar(tk.Frame):
@@ -126,11 +148,67 @@ class MainWin(object):
         self.imageATk = ImageTk.PhotoImage(self.imageB)
         self.panelA.config(image=self.imageATk)
         
+    def get_joint_position(self, limb, des_pose):
+        '''
+        return a list of joint rotation angles
+        :param limb: left or right
+        :param pose: a list containing the desired Cartesian coordinates + Quaternion
+        '''
+        ns = "ExternalTools/" + limb + "/PositionKinematicsNode/IKService"
+        iksvc = rospy.ServiceProxy(ns, SolvePositionIK)
+        ikreq = SolvePositionIKRequest()
+        hdr = Header(stamp=rospy.Time.now(), frame_id='base')
+        poseMsg = PoseStamped(
+                header=hdr,
+                pose=Pose(
+                    position=Point(
+                        x=des_pose[0],
+                        y=des_pose[1],
+                        z=des_pose[2],
+                    ),
+                    orientation=Quaternion(
+                        x=des_pose[3],
+                        y=des_pose[4],
+                        z=des_pose[5],
+                        w=des_pose[6],
+                    ),
+                )
+            )
+        
+        ikreq.pose_stamp.append(poseMsg)
+        try:
+            rospy.wait_for_service(ns, 5.0)
+            resp = iksvc(ikreq)
+        except (rospy.ServiceException, rospy.ROSException), e:
+            rospy.logerr("Service call failed: %s" % (e,))
+            return None
     
+        # Check if result valid, and type of seed ultimately used to get solution
+        # convert rospy's string representation of uint8[]'s to int's
+        resp_seeds = struct.unpack('<%dB' % len(resp.result_type),
+                                   resp.result_type)
+        if (resp_seeds[0] != resp.RESULT_INVALID):
+            seed_str = {
+                        ikreq.SEED_USER: 'User Provided Seed',
+                        ikreq.SEED_CURRENT: 'Current Joint Angles',
+                        ikreq.SEED_NS_MAP: 'Nullspace Setpoints',
+                       }.get(resp_seeds[0], 'None')
+            print("SUCCESS - Valid Joint Solution Found from Seed Type: %s" %
+                  (seed_str,))
+        else:
+            print("INVALID POSE - No Valid Joint Solution Found.")
+    
+        return dict(zip(resp.joints[0].name, resp.joints[0].position))
+
     def move_arm(self):
         '''
         move baxter arm to position for snapshot
         '''
+        global cam_pose, limb
+        joint_angles = self.get_joint_position("left", cam_pose)
+        if joint_angles is None:
+            return 
+        limb.move_to_joint_positions(joint_angles, timeout=5, threshold=0.0018)
         
         
     def select_path(self):
@@ -291,6 +369,10 @@ root = tk.Tk()
 root.title("Camera GUI")
 gui = MainWin(root)
 root.protocol("WM_DELETE_WINDOW", gui.onClose)
+
+#initlize limb interface
+limb = Limb('left')
+cam_pose = [0.548, 0.890, 0.095, 0, 1, 0, 0]
 
 #start listener thread
 lthread = threading.Thread(target=listening, args=[])

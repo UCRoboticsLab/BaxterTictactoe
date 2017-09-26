@@ -13,7 +13,6 @@ class Animation:
     def __init__(self, directory):
         self.fnames = [fname for fname in glob.glob("%s/*" % directory)]
         self.fnames.sort()
-        print self.fnames
         self.images = [cv2.imread(path) for path in self.fnames]
         self.animation_timer = None
         self.current_value = 0

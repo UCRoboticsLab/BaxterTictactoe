@@ -7,7 +7,7 @@ A GUI to help user take snapshot with hand camera
 """
 
 import Tkinter as tk
-import tkFileDialog
+import tkFileDialog, tkMessageBox
 import tkSimpleDialog
 from baxter_interface.camera import CameraController 
 from PIL import Image
@@ -17,6 +17,7 @@ from PIL._imaging import outline
 import glob
 import os
 from reportlab.platypus.flowables import ImageAndFlowables
+import subprocess
 
 
 
@@ -47,6 +48,7 @@ class MainWin(object):
     
     def __init__(self, parent):
         #self.camera = Cam()
+        self.animation_node = None # no animation server at beginning
         self.max_screen_res = (1024, 600)
         #============================== frames =========================================
         self.frameA = tk.Frame(parent, highlightbackground="green", highlightcolor="green", highlightthickness=2)
@@ -85,6 +87,9 @@ class MainWin(object):
         
         snapshot_btn = tk.Button(self.frameB, text="Snapshot", command=self.snapshot, width=20)
         snapshot_btn.grid(row=1, column=1,padx=10, pady=10)
+        
+        restart_btn = tk.Button(self.frameB, text="Restart anime", command=self.restart_node, width=20)
+        restart_btn.grid(row=1, column=2,padx=10, pady=10)
         
         up_btn = tk.Button(self.frameB, text="up", command=self.snapshot, width=3)
         up_btn.grid(row=0, column=5,padx=10, pady=10)
@@ -162,9 +167,27 @@ class MainWin(object):
         
         imageB_crop.save(new_full_fn)
         
+    def restart_node(self):
+        '''
+        Update image path in animation node and restart
+        This GUI uses the single express animation server
+        '''
+        global path
+        if self.animation_node is not None:
+            #kill the process 
+            self.animation_node.kill()
         
-    
-    
+        #create new animation node with current path
+        self.animation_node = subprocess.Popen(["rosrun", "baxter_tictactoe", "animator_server.py", path], shell=False)
+        
+    def onClose(self):
+        if tkMessageBox.askokcancel("Quit", "Do you really wish to quit? Animation server will be terminated"):
+            
+            if self.animation_node is not None and self.animation_node.poll() == None:
+                # the process is still alive
+                self.animation_node.terminate()
+            
+            root.destroy()
 
 class Cam(object):
     """
@@ -212,5 +235,6 @@ prefix = "img" # the prefix for saved files
 root = tk.Tk()
 root.title("Camera GUI")
 gui = MainWin(root)
+root.protocol("WM_DELETE_WINDOW", gui.onClose)
 
 root.mainloop()

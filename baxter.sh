@@ -23,7 +23,7 @@ baxter_hostname="011502P0001.local"
 
 # Set *Either* your computers ip address or hostname. Please note if using
 # your_hostname that this must be resolvable to Baxter.
-your_ip="10.0.0.100"
+your_ip="10.0.0.101"
 #your_hostname="baxterdev-OptiPlex-990.local"
 
 # Specify ROS distribution (e.g. indigo, hydro, etc.)

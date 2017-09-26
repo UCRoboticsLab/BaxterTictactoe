@@ -4,6 +4,9 @@ build/
 #ignore devel directory
 devel/
 
+#ignore install directory
+install/
+
 #ignore eclipse metadata
 .metadata/
 

@@ -13,12 +13,13 @@ class Animation:
     def __init__(self, directory):
         self.fnames = [fname for fname in glob.glob("%s/*" % directory)]
         self.fnames.sort()
+        print self.fnames
         self.images = [cv2.imread(path) for path in self.fnames]
         self.animation_timer = None
         self.current_value = 0
         self.current_idx = 0
         self.set_velocity(1/20.0)
-        self.current_target = None
+        self.current_target = 99
 
 
         self.image_publisher = rospy.Publisher("/robot/xdisplay", Image,
@@ -90,6 +91,7 @@ class Animation:
        
     def timer_cb(self, time):
         self.animate()
+        #print "anime timer is running"
         self.publish_state()
 
     def animate(self):
@@ -100,7 +102,8 @@ class Animation:
             elif self.current_target > self.current_value:
                 self.set_value(self.current_value + 1)
             elif self.current_target == self.current_value:
-                self.current_target = None
+                #self.current_target = None
+                self.current_value = 0
             else:
                 raise ValueError("No target: " + `self.target`)
 

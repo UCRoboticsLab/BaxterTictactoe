@@ -5,7 +5,7 @@ A GUI to help user take snapshot with hand camera
 
   
 """
-
+import rospy
 import Tkinter as tk
 import tkFileDialog, tkMessageBox
 import tkSimpleDialog
@@ -18,6 +18,9 @@ import glob
 import os
 from reportlab.platypus.flowables import ImageAndFlowables
 import subprocess
+import Queue
+from sensor_msgs.msg import Image as ImageMsg
+import threading
 
 
 
@@ -189,6 +192,19 @@ class MainWin(object):
             
             root.destroy()
 
+    def update_image(self):
+        '''
+        Check the image queue for incoming camera image.
+        by default the camera runs at 25Hz, the GUI refreshing rate should be faster than that 
+        '''
+        global img_queue
+        try: 
+            msg = img_queue.get_nowait()
+        except Queue.Empty:
+            root.after(10, self.update_image)
+        
+        
+
 class Cam(object):
     """
     represent the selected camera
@@ -227,14 +243,46 @@ class Cam(object):
     
     
 
+def image_callback(data):
+    global img_queue
+    #feed in data to the FIFO queue
+    img_queue.put_nowait(data)
 
-
+def listening():
+    '''
+    The listener to the camera image topic. 
+    '''
+    #rospy.init_node('woz_listener', anonymous=True)
+    sub = rospy.Subscriber("/cameras/left_hand_camera/image", ImageMsg, image_callback)
+    rospy.spin()
+    
 path = '.' # the saving path for snapshots    
 prefix = "img" # the prefix for saved files
+img_queue = Queue.Queue() # the global queue used to pass on image to Tkinter
 
+rospy.init_node('cam_gui', anonymous=True)
 root = tk.Tk()
 root.title("Camera GUI")
 gui = MainWin(root)
 root.protocol("WM_DELETE_WINDOW", gui.onClose)
 
+#start listener thread
+lthread = threading.Thread(target=listening, args=[])
+lthread.setDaemon(True)
+lthread.start()
+
+#schedule the frist update image event in mainloop
+root.after(10, gui.update_image)
+
 root.mainloop()
+
+
+
+
+
+
+
+
+
+
+

@@ -122,6 +122,9 @@ class MainWin(object):
         restart_btn = tk.Button(self.frameB, text="Restart anime", command=self.restart_node, width=20)
         restart_btn.grid(row=1, column=2,padx=10, pady=10)
         
+        selfie_btn = tk.Button(self.frameB, text="Selfie pose", command=self.move_to_selfie, width=20)
+        selfie_btn.grid(row=0, column=2,padx=10, pady=10)
+        
         up_btn = tk.Button(self.frameB, text="up", command=self.move_up, width=3)
         up_btn.grid(row=0, column=5,padx=10, pady=10)
         
@@ -157,6 +160,16 @@ class MainWin(object):
         move arm down a bit
         '''
         self.relative_move(x=0, y=0, z=-0.03)
+    
+    def move_to_selfie(self):
+        '''
+        move to selfie pose
+        '''
+        global selfie_pose, limb
+        joint_angles = self.get_joint_position("left", selfie_pose)
+        if joint_angles is None:
+            return 
+        limb.move_to_joint_positions(joint_angles, timeout=5, threshold=0.0018)
         
     
     def draw_box(self):
@@ -392,6 +405,10 @@ root.protocol("WM_DELETE_WINDOW", gui.onClose)
 limb = Limb('left')
 cam_pose = Pose(position=Point(x=0.548, y=0.890, z=0.095), 
                 orientation=Quaternion(x=0, y=1, z=0, w=0))
+
+# change the selfie pose to an appropriate value
+selfie_pose = Pose(position=Point(x=0.4, y=0.30, z=0.55), 
+                orientation=Quaternion(x=-0.416, y=0.580, z=-0.689, w=0.125))
 
 #start listener thread
 lthread = threading.Thread(target=listening, args=[])
